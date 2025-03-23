@@ -1,0 +1,143 @@
+/* Dynamic arrow animation */
+.dynamic-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: height 0.3s ease;
+    position: relative;
+}
+
+.arrow-part {
+    font-size: clamp(3.25rem, 9vh, 6rem);
+    font-weight: 900;
+    color: #ffc107;
+    animation: colorChange 3s infinite;
+    text-shadow: 0.05vw 0.05vw 0.1vw rgba(0,0,0,0.1);
+    line-height: 1;
+}
+
+.arrow-part:nth-child(3) { animation-delay: 0s; }
+.arrow-part:nth-child(2) { animation-delay: 1s; }
+.arrow-part:nth-child(1) { animation-delay: 2s; }
+
+@keyframes colorChange {
+    0% { color: #ffc107; }
+    33% { color: #28a745; }
+    66% { color: #007bff; }
+    100% { color: #ffc107; }
+}
+
+/* אנימציות בסיסיות - ימינה ושמאלה */
+@keyframes move-right {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(1vw); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes move-left {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-1vw); }
+    100% { transform: translateX(0); }
+}
+
+/* ======== לוגיקת האנימציה הפשוטה ======== */
+
+/* באנגלית - המקטעים הראשון והאחרון נעים ימינה (משמאל לימין) */
+.en .feature-title:not(.feature-second-item .feature-title),
+.en .dynamic-arrow:not(.feature-second-item .dynamic-arrow) {
+    animation: move-right 6s ease-in-out infinite;
+}
+
+/* באנגלית - המקטע האמצעי נע שמאלה (מימין לשמאל) */
+.en .feature-second-item .feature-title,
+.en .feature-second-item .dynamic-arrow {
+    animation: move-left 6s ease-in-out infinite;
+}
+
+/* בעברית - המקטע האמצעי נע ימינה (משמאל לימין) */
+.he .feature-second-item .feature-title,
+.he .feature-second-item .dynamic-arrow {
+    animation: move-right 6s ease-in-out infinite;
+}
+
+/* בעברית - המקטעים הראשון והאחרון נעים שמאלה (מימין לשמאל) */
+.he .feature-title:not(.feature-second-item .feature-title),
+.he .dynamic-arrow:not(.feature-second-item .dynamic-arrow) {
+    animation: move-left 6s ease-in-out infinite;
+}
+
+/* Feature Title Responsive */
+.feature-title {
+    transition: all 0.3s ease;
+    text-shadow: 0.15vw 0.15vw 0.4vw rgba(0, 120, 255, 0.6),
+                 0.3vw 0.3vw 0.7vw rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+/* Grid pattern */
+.bg-grid-pattern {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw),
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw);
+    background-size: 1vw 1vw;
+    background-position: center;
+    background-repeat: repeat;
+}
+
+/* תיקון המרווחים בין המקטעים - שימוש ב-clamp לריספונסיביות */
+.grid.md\:grid-cols-2 {
+    margin-bottom: clamp(0.2rem, 3vw, 2rem);
+}
+
+/* מרווח בין הדיבים בתוך המקטע */
+.grid > div {
+    margin: clamp(0.2rem, 2vw, 1.5rem) 0;
+}
+
+/* Feature Description and Expanded Text - שיפור קריאות הטקסט */
+.feature-description {
+    font-family: 'Assistant', 'Rubik', 'Heebo', sans-serif;
+}
+
+/* Fix for the white stripe bug - ensuring absolute elements render properly */
+[class*="z-"] {
+    position: relative;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Proper z-index stacking */
+.z-0 { z-index: 0; }
+.z-1 { z-index: 1; }
+.z-2 { z-index: 2; }
+.z-10 { z-index: 10; }
+
+/* תיקון נוסף לבעיית הפס הלבן - מבטיח שהאלמנטים המוחלטים מכסים את כל האיזור */
+.absolute {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Optimize for vertical display */
+@media (min-width: 768px) {
+    .first\:pt-0:first-child {
+        padding-top: 0 !important;
+    }
+    
+    .last\:pb-0:last-child {
+        padding-bottom: 0 !important;
+    }
+}
+
+/* Optimize for horizontal display (mobile) */
+@media (max-width: 767px) {
+    .grid > div + div {
+        margin-top: 0;
+    }
+    
+    .dynamic-arrow {
+        margin-bottom: 1rem;
+    }
+}

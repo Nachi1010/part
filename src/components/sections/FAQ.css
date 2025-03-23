@@ -1,0 +1,67 @@
+/* FAQ Item Container */
+.faq-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 0.05vw solid transparent;
+}
+
+.faq-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Icon Animation */
+.faq-icon {
+  transform: rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-item[data-state="open"] .faq-icon {
+  transform: rotate(180deg);
+}
+
+/* Content Animation */
+.faq-item > div {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* RTL Support */
+[dir="rtl"] .faq-item button {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .faq-item button > span:first-child {
+  text-align: right;
+}
+
+/* Question Text Hover */
+.faq-item button span {
+  transition: color 0.2s ease;
+}
+
+.faq-item:hover button span {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Open State Styling */
+.faq-item[data-state="open"] {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 0.2vw 0.3vw -0.05vw rgba(0, 0, 0, 0.1), 
+    0 0.1vw 0.2vw -0.05vw rgba(0, 0, 0, 0.06);
+}
+
+/* Content Transition */
+.faq-item > div > div {
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.faq-item[data-state="closed"] > div > div {
+  opacity: 0;
+  transform: translateY(-0.4vw);
+}
+
+.faq-item[data-state="open"] > div > div {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,0 +1,412 @@
+/* Base Styles */
+:root {
+  --gradient-border: linear-gradient(to right, #000205, #1a365d);
+  --dark-blue-bg: #000205;
+  --shine-overlay: linear-gradient(120deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --glass-effect: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shine: rgba(255, 255, 255, 0.08);
+  --text-glow-subtle: 0 0 0.8vw rgba(255, 255, 255, 0.15);
+  --premium-gold: #DBA642;
+  --subtle-white: rgba(255, 255, 255, 0.85);
+  --muted-white: rgba(255, 255, 255, 0.7);
+  --feature-bg: rgba(255, 255, 255, 0.04);
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+body {
+  font-family: 'Rubik', sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+  background: var(--dark-blue-bg);
+  color: #fff;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Layout Components */
+.app-wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: var(--dark-blue-bg);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.gradient-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(10, 17, 40, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(0, 2, 5, 0.08) 0%, transparent 40%);
+}
+
+.content-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Section Styling */
+section {
+  position: relative;
+  border: none;
+  margin: 0;
+  padding: 4vw 2vw;
+  overflow: hidden;
+  background: rgba(0, 2, 5, 0.3);
+  backdrop-filter: blur(0.6vw);
+  border: 0.05vw solid var(--glass-border);
+}
+
+section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(74, 222, 128, 0.03) 25%,
+    rgba(139, 92, 246, 0.02) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+section::after {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -50%;
+  width: 200%;
+  height: 300%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(255, 255, 255, 0.02) 60%,
+    transparent 100%
+  );
+  transform: rotate(45deg);
+  animation: shine 8s infinite linear;
+  pointer-events: none;
+}
+
+/* Utility Classes */
+.glassmorphism {
+  background: rgba(0, 2, 5, 0.7);
+  backdrop-filter: blur(0.5vw);
+  border: none;
+  box-shadow: 0 0.4vw 1.6vw rgba(0, 0, 0, 0.5);
+}
+
+.interactive-element {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.interactive-element:hover {
+  transform: translateY(-0.1vw);
+  box-shadow: 0 0.4vw 1.6vw rgba(0, 0, 0, 0.2);
+}
+
+/* Animations */
+@keyframes shine {
+  0% { transform: translate(-100%, -100%) rotate(45deg); }
+  100% { transform: translate(100%, 100%) rotate(45deg); }
+}
+
+/* Header Styling */
+header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(0.4vw);
+  border-bottom: 0.05vw solid var(--glass-border);
+}
+
+header .container {
+  position: relative;
+}
+
+header .container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--glass-shine),
+    transparent
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+header button {
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-shadow: 0 0 0.5vw rgba(255, 255, 255, 0.3);
+}
+
+header a {
+  color: var(--subtle-white) !important;
+  text-shadow: var(--text-glow-subtle);
+}
+
+/* FAQ Styling */
+.faq-item {
+  background: var(--feature-bg);
+  border: 0.05vw solid var(--glass-border);
+  backdrop-filter: blur(0.4vw);
+  margin-bottom: 1vw;
+  transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-0.1vw);
+  box-shadow: 
+    0 0.4vw 1.6vw rgba(0, 0, 0, 0.2),
+    inset 0 0 1.6vw rgba(255, 255, 255, 0.02);
+}
+
+.faq-question {
+  color: var(--subtle-white);
+  text-shadow: var(--text-glow-subtle);
+  font-weight: 500;
+}
+
+.faq-answer {
+  color: var(--muted-white);
+  text-shadow: none;
+}
+
+.faq-icon {
+  color: var(--premium-gold) !important;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.faq-item:hover .faq-icon {
+  opacity: 1;
+}
+
+/* Features Text Alignment */
+.feature-text {
+  text-align: left;
+}
+
+.feature-text.right-aligned {
+  text-align: right;
+}
+
+.feature-arrows {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.feature-arrows.right-aligned {
+  justify-content: flex-end;
+}
+
+.feature-arrows svg {
+  color: var(--muted-white);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.feature-text:hover + .feature-arrows svg {
+  opacity: 1;
+}
+
+/* Form Styling */
+.form-label {
+  text-align: left;
+  color: #1a1a1a;
+  font-weight: 500;
+  text-shadow: none;
+}
+
+/* Enhanced Glass Effect */
+.glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(0.6vw);
+  border: 0.05vw solid var(--glass-border);
+  box-shadow: 
+    0 0.4vw 1.6vw rgba(0, 0, 0, 0.3),
+    inset 0 0 1.6vw rgba(255, 255, 255, 0.02);
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 30%,
+    rgba(255, 255, 255, 0.01) 48%,
+    transparent 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Features Enhanced Styling */
+.feature-text {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(0.5vw);
+  border: 0.05vw solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0.4vw 1.6vw rgba(0, 0, 0, 0.2),
+    inset 0 0 1.6vw rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+}
+
+.feature-text:hover {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0.6vw 2.4vw rgba(0, 0, 0, 0.3),
+    inset 0 0 2.4vw rgba(255, 255, 255, 0.03);
+}
+
+.feature-text p {
+  color: var(--muted-white);
+  text-shadow: var(--text-glow-subtle);
+}
+
+/* Form Enhanced Styling */
+.form-container {
+  background: #ffffff;
+  border-radius: 0.8vw;
+  box-shadow: 
+    0 1.25vw 2.5vw -0.6vw rgba(0, 0, 0, 0.25),
+    0 0 5vw -0.6vw rgba(219, 166, 66, 0.2);
+  backdrop-filter: blur(1vw);
+  border: 0.05vw solid rgba(219, 166, 66, 0.1);
+}
+
+.form-input {
+  background: #ffffff;
+  border: 0.05vw solid #e2e8f0;
+  color: #1E293B;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  background: #ffffff;
+  border-color: var(--premium-gold);
+  box-shadow: 0 0 0 0.15vw rgba(219, 166, 66, 0.15);
+}
+
+/* Enhanced Text Styling */
+.description-text {
+  color: var(--muted-white);
+  text-shadow: var(--text-glow-subtle);
+  font-weight: 400;
+}
+
+.highlight-text {
+  color: var(--subtle-white);
+  text-shadow: var(--text-glow-subtle);
+  letter-spacing: 0.025em;
+  font-weight: 500;
+}
+
+/* Premium Button Style */
+.premium-button {
+  background: linear-gradient(to right, #DBA642, #B7853B);
+  box-shadow: 
+    0 0.75vw 1.5vw rgba(183, 133, 59, 0.4),
+    0 0 3vw rgba(219, 166, 66, 0.5);
+}
+
+/* Hero CTA Button */
+.hero-cta {
+  background: linear-gradient(135deg, var(--premium-gold) 0%, #B7853B 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 1.25vw 2.5vw;
+  border-radius: 0.4vw;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 
+    0 0.5vw 1.25vw rgba(183, 133, 59, 0.3),
+    0 0 2vw rgba(219, 166, 66, 0.4);
+}
+
+.hero-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.4) 75%,
+    transparent 100%
+  );
+  animation: shimmer 3s infinite linear;
+}
+
+.hero-cta:hover {
+  transform: translateY(-0.1vw);
+  background: linear-gradient(135deg, #F6D58A 0%, var(--premium-gold) 100%);
+  box-shadow: 
+    0 0.75vw 1.5vw rgba(183, 133, 59, 0.4),
+    0 0 3vw rgba(219, 166, 66, 0.5);
+}
+
+/* סגנונות נגישות */
+.high-contrast {
+  filter: contrast(1.5);
+  background-color: black !important;
+  color: white !important;
+}
+
+.high-contrast * {
+  background-color: black !important;
+  color: white !important;
+  border-color: white !important;
+}
+
+.high-contrast button,
+.high-contrast a {
+  background-color: #000 !important;
+  color: yellow !important;
+  border: 2px solid yellow !important;
+}
+
+.high-contrast img {
+  filter: contrast(1.5) brightness(0.9);
+}
+
+.high-contrast input, 
+.high-contrast textarea, 
+.high-contrast select {
+  background-color: #000 !important;
+  color: white !important;
+  border: 2px solid white !important;
+}
