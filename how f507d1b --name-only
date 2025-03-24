@@ -1,0 +1,12 @@
+7328960 2025-03-24 Fix image paths and optimize build configuration
+175ddfb 2025-03-24 feat: enhance index.html with SPA support and meta tags
+85a45ed 2025-03-24 feat: add 404.html for client-side routing
+6bdc7dd 2025-03-24 chore: add GitHub Actions workflow and .nojekyll
+d7d4f8c 2025-03-24 fix: update vite config and image paths for custom domain
+4580d5b 2025-03-24 fix: move @import statement to top of CSS file
+53eb3be 2025-03-24 fix: handle undefined asset names in vite config
+7e113b9 2025-03-24 fix: update image paths and vite config for custom domain
+14e558e 2025-03-24 Add CNAME file for custom domain
+e5b1438 2025-03-24 שינוי base URL ל-/ עבור דומיין מותאם אישית
+e22acee 2025-03-24 עדכון הגדרות עבור דומיין מותאם אישית
+f507d1b 2025-03-24 הכנה לפריסה חדשה בPracticsAI

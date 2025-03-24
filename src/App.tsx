@@ -45,14 +45,11 @@ const useHashFragmentHandler = () => {
 
 // Helper function to handle image paths with the correct base URL
 export const getImagePath = (path: string): string => {
-  // Remove leading slash if present to avoid double slashes
+  // הסר / בתחילת הנתיב אם קיים
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
-  // In development mode, just use the path relative to the public directory
-  // In production, prepend the BASE_URL 
-  return (import.meta.env.DEV) 
-    ? `/${cleanPath}` 
-    : `${import.meta.env.BASE_URL}${cleanPath}`;
+  // השתמש בנתיב יחסי פשוט - עובד הן בפיתוח והן בייצור עם דומיין מותאם אישית
+  return `/${cleanPath}`;
 };
 
 const App = () => {
