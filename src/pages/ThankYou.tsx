@@ -9,6 +9,10 @@ const ThankYou = () => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
+<!-- Event snippet for קביעת פגישה conversion page -->
+<script>
+  gtag('event', 'conversion', {'send_to': 'AW-16922611528/i9L-COijvqkaEMieqoU_'});
+</script>
 
   const texts = {
     en: {
