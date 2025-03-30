@@ -52,9 +52,9 @@ export const Registration = () => {
       loading: "Processing..."
     },
     he: {
-      title: "הגישו מועמדות לתכנית",
+      title: "הגישו מועמדות לתכנית הגיוס הייחודית שלנו",
       subtitle: "רוכשים משרה נחשקת ומומחיות ב-AI",
-      namePlaceholder: "ישראל ישראלי",
+      namePlaceholder: "שם מלא",
       idPlaceholder: "0-0000000-0",
       emailPlaceholder: "your@email.com",
       phonePlaceholder: "050-000-0000",
@@ -95,61 +95,22 @@ export const Registration = () => {
     setIsSubmitting(true);
 
     try {
-      // בדיקות תקינות 
-      const hasValidName = formData.name && formData.name.trim() !== '';
-      const hasValidEmail = isValidEmail(formData.email);
-      const hasValidPhone = isValidPhone(formData.phone);
-      
-      // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
-      let existingUserId = null;
-      
-      // נבדוק אם המשתמש קיים לפי אימייל
-      if (hasValidEmail) {
-        const { data: existingUserByEmail } = await supabase
-          .from('registration_data')
-          .select('user_id')
-          .eq('email', formData.email)
-          .limit(1);
-          
-        if (existingUserByEmail && existingUserByEmail.length > 0) {
-          existingUserId = existingUserByEmail[0].user_id;
-          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
-        }
-      }
-      
-      // אם לא מצאנו לפי אימייל, ננסה לפי טלפון
-      if (!existingUserId && hasValidPhone) {
-        const { data: existingUserByPhone } = await supabase
-          .from('registration_data')
-          .select('user_id')
-          .eq('phone', formData.phone)
-          .limit(1);
-          
-        if (existingUserByPhone && existingUserByPhone.length > 0) {
-          existingUserId = existingUserByPhone[0].user_id;
-          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
-        }
-      }
-      
-      // שליחה לסופבייס עם טבלה "registration_data"
+      // שליחה לסופבייס בכל מקרה
       const { error } = await supabase.from('registration_data').insert([{
-        // לא משתמשים ב-user_id קיים כלל - סופאבייס ייצור מזהה חדש
         name: formData.name || '',
+        id_number: formData.id || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        id_number: formData.id || '',
-        // שמירת זיהוי של רשומות קודמות במטא-דאטה
-        metadata: {
-          browser_info: navigator.userAgent,
-          form_locale: currentLang,
-          form_timestamp: new Date().toISOString(),
-          previous_registration_id: existingUserId || null,
-          is_update: existingUserId ? true : false
-        }
+        created_at: new Date().toISOString()
       }]);
 
       if (error) throw error;
 
+      // בדיקות תקינות
+      const hasValidName = formData.name && formData.name.trim() !== '';
+      const hasValidEmail = isValidEmail(formData.email);
+      const hasValidPhone = isValidPhone(formData.phone);
+      
       // בדיקת תנאים להצגת הודעת הצלחה:
       // 1. שם + אימייל תקין
       // 2. או מספר טלפון בן 9 ספרות
@@ -196,33 +157,6 @@ export const Registration = () => {
           duration: 7000,
         });
       }
-
-      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לקטבלת הלוגים
-      try {
-        // אין לנו את ה-user_id החדש כי הוא נוצר אוטומטית בסופאבייס
-        // לכן נשתמש ב-null ונסמוך על הטריגר שיוסיף את המידע הדרוש
-        await supabase.from('activity_log').insert([{
-          // אין לנו user_id במודל החדש, ה-trigger יטפל בזה
-          user_id: null,
-          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
-          table_name: 'registration_data',
-          details: {
-            form_data: {
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
-              id_number: formData.id || '',
-            },
-            previous_registration_id: existingUserId,
-            has_valid_email: hasValidEmail,
-            has_valid_phone: hasValidPhone,
-            client_timestamp: new Date().toISOString()
-          }
-        }]);
-      } catch (logError) {
-        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
-        console.warn('Failed to write to activity log:', logError);
-      }
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -240,42 +174,20 @@ export const Registration = () => {
   const direction = getTextDirection();
 
   return (
-    <div 
+    <section 
       id="registration-form"
-      className="py-20 min-h-screen flex items-center justify-center"
-      style={{ 
-        direction,
-        position: "relative",
-        overflow: "hidden"
-      }}
+      className="py-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-800"
+      style={{ direction }}
     >
-      {/* רקע קבוע */}
-      <div 
-        className="fixed inset-0" 
-        style={{
-          backgroundImage: "url('/images/D.jpeg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: "brightness(0.4)", 
-          zIndex: "-1"
-        }}
-      ></div>
-      
       <div className="w-full max-w-md px-6">
-        {/* כרטיס הטופס - עם סגנון סטטי לחלוטין */}
-        <div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
-        >
+        {/* כרטיס הטופס */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           {/* כותרת */}
-          <div 
-            className="p-8" 
-            style={{ backgroundColor: "#1e293b" }}
-          >
-            <h2 className="text-3xl font-bold text-white mb-2">
+          <div className="p-8 bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+            <h2 className="text-3xl font-bold tracking-tight mb-2">
               {t.title}
             </h2>
-            <p className="text-white opacity-80">
+            <p className="text-white/80">
               {t.subtitle}
             </p>
           </div>
@@ -294,7 +206,7 @@ export const Registration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
                 />
               </div>
 
@@ -309,7 +221,7 @@ export const Registration = () => {
                   placeholder={t.idPlaceholder}
                   value={formData.id}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
                 />
               </div>
 
@@ -324,7 +236,7 @@ export const Registration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
                 />
               </div>
 
@@ -340,35 +252,30 @@ export const Registration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
                 />
               </div>
 
-              {/* כפתור שליחה - עם מרווח מהשורה האחרונה */}
-              <div className="pt-5">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
-                  style={{ 
-                    backgroundColor: "#334155"
-                  }}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {t.loading}
-                    </span>
-                  ) : t.submitButton}
-                </button>
-              </div>
+              {/* כפתור שליחה */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 px-6 mt-6 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 disabled:opacity-70"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t.loading}
+                  </span>
+                ) : t.submitButton}
+              </button>
             </form>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

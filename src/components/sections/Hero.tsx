@@ -6,12 +6,12 @@ import { getImagePath } from "@/App";
 const translations = {
   en: {
     title: "AI development.",
-    subtitle: "Leading the Universe Future",
+    subtitle: "Leading the AI Future",
     cta: "Join"
   },
   he: {
     title: "AI development.",
-    subtitle: "להוביל את עתיד היקום",
+    subtitle: "להוביל את עתיד ה-AI",
     cta: "להרשמה"
   }
 };
@@ -102,7 +102,7 @@ export const Hero = () => {
             padding: "clamp(0.6vw, 1vw, 1.4vw) clamp(2vw, 2.5vw, 3vw)",
             borderRadius: "clamp(0.4rem, 0.8vw, 12px)",
             fontSize: "clamp(1rem, 5vw, 8vw)",
-            fontFamily: currentLang === 'en' ? getFontFamily(false) : "'Cinzel', 'Amatic SC', 'Heebo', sans-serif",
+            fontFamily: currentLang === 'en' ? getFontFamily(false) : "'Amatic SC', 'Cinzel', 'Heebo', sans-serif",
             textDecoration: "none",
             boxShadow: `0 clamp(0.2vw, 0.4vw, 0.6vw) clamp(0.8vw, 1.2vw, 1.6vw) rgba(0, 0, 0, 0.6), 0 0 0 clamp(0.15vw, 0.3vw, 0.45vw) rgba(255, 255, 255, 0.4)`,
             border: `clamp(0.15vw, 0.3vw, 0.4vw) solid #eaeaea`,

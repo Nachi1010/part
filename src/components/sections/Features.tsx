@@ -17,10 +17,28 @@ const Feature = ({
 }: FeatureProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedByClick, setExpandedByClick] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { currentLang, getTextDirection } = useLanguage();
   const titleRef = useRef<HTMLHeadingElement>(null);
   const arrowsRef = useRef<HTMLDivElement>(null);
   const featureRef = useRef<HTMLDivElement>(null);
+  
+  // זיהוי מכשירים ניידים בטעינה ובשינוי גודל המסך
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // בדיקה ראשונית
+    checkMobile();
+    
+    // בדיקה בכל שינוי גודל מסך
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
   
   // אנימציה עדינה - מרחף באלגנטיות - כעת מוגדרת בקובץ CSS בלבד
   // מסירים את כל קוד האנימציה של JavaScript שגרם לבעיות
@@ -145,9 +163,11 @@ const Feature = ({
       </div>
 
       <div
-        className={currentLang === "en" ? 
+        className={`${currentLang === "en" ? 
           (arrowPosition === "right" ? "md:order-1" : "") :
-          (arrowPosition === "right" ? "" : "md:order-1")}
+          (arrowPosition === "right" ? "" : "md:order-1")} ${
+            isMobile ? 'mobile-feature-content' : ''
+          }`}
         onClick={() => {
           setIsExpanded(!isExpanded);
           setExpandedByClick(!isExpanded);
@@ -161,6 +181,35 @@ const Feature = ({
           if (!expandedByClick) {
             setIsExpanded(false);
           }
+        }}
+        onFocus={() => {
+          // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(true);
+          }
+        }}
+        onBlur={() => {
+          // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(false);
+          }
+        }}
+        // רק במובייל נאפשר התמקדות
+        tabIndex={isMobile ? 0 : -1}
+        // אירועי מגע לחוויה טובה יותר במובייל
+        onTouchStart={(e) => {
+          // מניעת אירועים אחרים אם זה כבר נפתח בלחיצה
+          if (isMobile && !expandedByClick) {
+            // רק אם זה לא בהרחבת לחיצה, נסמלץ את ה-hover
+            setIsExpanded(true);
+          }
+        }}
+        onTouchEnd={(e) => {
+          // אם היה בהרחבת הובר (לא לחיצה) נסגור כשהמגע מסתיים
+          if (isMobile && !expandedByClick) {
+            setIsExpanded(false);
+          }
+          // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
         }}
       >
         <div 
@@ -226,7 +275,7 @@ const Feature = ({
                 style={{ 
                   direction: getTextDirection(), 
                   padding: 'clamp(0.5rem, 1.5vw, 2rem)', // תיקון פדינג למסכים קטנים
-                  fontFamily: 'Assistant, sans-serif', // שימוש בפונט Assistant  })
+                  fontFamily: 'sans-serif', // שימוש בפונט Assistant  })
                   lineHeight: 'clamp(0.7, 1.3, 1.8)',
                   fontWeight: 'normal', // Reduce boldness for English
                 }}
@@ -267,19 +316,19 @@ export const Features = () => {
     ],
     he: [
       {
-        title: "AI: הייטק על סטרואידים",
+        title: "™PracticsAI - הזדמנות יחידה מסוגה בעולם",
         description: "למה אין \"תואר ללימודי AI\" (או: יש מצב שחברת AI מובילה תעניק לי הכשרה מלאה??)",
         expandedText: "האופי החלוצי של תחום ה-AI ומורכבויותיו הייחודיות, הוא רק אחד הגורמים לכך שממוצע השכר בתחום הינו כפול מהממוצע בעולמות ההייטק הישן. למרות הביקוש המסחרר לעובדים בתחום ה-AI, מורגש חסר משמעותי בהיצע כח האדם הזמין. הסיבה לכך נעוצה גם היא במורכבות הייחודית של התחום",
         arrowPosition: "left" as const
       },
       {
         title: "להפוך למפתח AI אמיתי",
-        description: "™PracticsAI - הכשרה מקיפה שבה נרכוש ניסיון המקביל ל-3 תארים אקדמיים + 2-3 שנות ניסיון",
+        description: "הכשרה מקיפה שבה נרכוש ניסיון המקביל ל-3 תארים אקדמיים + 2-3 שנות ניסיון",
         expandedText: "מתודולוגיית הלימודים החדשנית והמסובסדת, פותחה באופן ייעודי למדעי ה-AI על ידי מומחי הוראה בינלאומיים. כך ניתן לרכוש את כלל המיומנויות והדיסציפלינות הנדרשות במדעי הבינה המלאכותית, במהלך שנת לימודים אחת בלבד - במתכונת מיוחדת המשלבת התנסות מעשית במגוון פרוייקטים פעילים עליהם עובדים ב-CloserAI",
         arrowPosition: "right" as const
       },
       {
-        title: "הזדמנות יחידה מסוגה בעולם",
+        title: "AI: הייטק על סטרואידים",
         description: "כלל המסיימים בהצלחה ישולבו מיידית בחברתנו ובחברות ה-AI המובילות בישראל. בהתחייבות.",
         expandedText: "תכנית הגיוס פורצת הדרך של CloserAI -מעשרת חברות ה-AI הצומחות בישראל- הוקמה בדיוק על מנת לענות לצרכי התעשייה. בזכות שת\"פ ייחודי עם חברות AI נוספות, מהמובילות בתחום - ניתן לראשונה לוותר על לימוד של שלשה תארים מייגעים ולהתקבל למשרות AI מובילות בחברתנו, או באחת השותפות",
         arrowPosition: "left" as const

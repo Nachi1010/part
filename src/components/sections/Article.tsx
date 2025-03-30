@@ -31,7 +31,14 @@ export const Article = () => {
   const isRTL = currentLang === "he";
 
   return (
-    <section className="py-16 bg-white">
+    <section 
+      className="py-16 bg-white" 
+      style={{ 
+        borderTop: 'none',
+        marginTop: '-1px',
+        position: 'relative'
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <h2 

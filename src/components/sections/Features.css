@@ -140,4 +140,33 @@
     .dynamic-arrow {
         margin-bottom: 1rem;
     }
+    
+    /* אנימציית התמקדות למובייל במקום אנימציית ריחוף */
+    .mobile-feature-content {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        user-select: none;
+        cursor: pointer;
+    }
+    
+    /* שיפור הדגשת התמקדות */
+    .mobile-feature-content:focus-within .rounded-lg {
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+    }
+    
+    /* אפקט וויזואלי עדין לאינדיקציה שניתן לאינטראקציה */
+    .mobile-feature-content .rounded-lg:after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .mobile-feature-content:focus-within .rounded-lg:after {
+        opacity: 1;
+    }
 }

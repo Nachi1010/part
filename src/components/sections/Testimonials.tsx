@@ -6,7 +6,15 @@ export const Testimonials = () => {
   const [showVideo, setShowVideo] = useState(false);
   
   return (
-    <section className="py-16 bg-white">
+    <section 
+      className="py-16 bg-white" 
+      style={{ 
+        borderBottom: 'none', 
+        marginBottom: '-1px',
+        position: 'relative',
+        zIndex: 1
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           

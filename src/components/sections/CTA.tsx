@@ -12,8 +12,8 @@ export const CTA = () => {
       button: "Enroll Now"
     },
     he: {
-      title: "מוכנים להתחיל בחיים חדשים?",
-      subtitle: "הרשמו לתוכנית ה-AI היחידה מסוגה בעולם",
+      title: "מוכנים להתחיל חיים חדשים?",
+      subtitle: "נרשמים ל-PracticsAI כאן ועכשיו",
       button: "הגשת מועמדות"
     }
   };
