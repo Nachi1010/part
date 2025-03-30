@@ -96,7 +96,7 @@ export const Registration = () => {
 
     try {
       // שליחה לסופבייס בכל מקרה
-      const { error } = await supabase.from('registrations').insert([{
+      const { error } = await supabase.from('registration_data').insert([{
         name: formData.name || '',
         id_number: formData.id || '',
         email: formData.email || '',

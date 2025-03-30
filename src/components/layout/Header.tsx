@@ -65,7 +65,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           >
             <img 
               src={getImagePath("/images/2.png")}
-              alt="Pixel"
+              alt="CloserAI"
               className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
             />
           </Link>
