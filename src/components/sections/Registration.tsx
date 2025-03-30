@@ -131,19 +131,21 @@ export const Registration = () => {
         }
       }
       
-      // שליחה לסופבייס עם טבלה "registrations" במקום "registration_data"
+      // שליחה לסופבייס עם טבלה "registrations"
       const { error } = await supabase.from('registration_data').insert([{
-        // אם יש מזהה קיים, השתמש בו, אחרת השאר null וה-trigger ייצור מזהה חדש 
-        user_id: existingUserId || undefined,
+        // אל תנסה להשתמש ב-user_id קיים (עלול להיות חסום ע"י RLS)
+        // במקום זאת, ניצור שורה חדשה בכל פעם וסופאבייס ייצור לה user_id חדש
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        // metadata נוספים מקומיים שניתן להוסיף
+        // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
           form_timestamp: new Date().toISOString(),
-          id_number: formData.id || ''
+          id_number: formData.id || '',
+          previous_registration_id: existingUserId || null, // קישור לרישום הקודם
+          is_update: existingUserId ? true : false // ציון שזה עדכון
         }
       }]);
 
@@ -198,11 +200,13 @@ export const Registration = () => {
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לקטבלת הלוגים
       try {
-        // רישום פעולת הרישום בלוג הפעילות
+        // אין לנו את ה-user_id החדש כי הוא נוצר אוטומטית בסופאבייס
+        // לכן נשתמש ב-null ונסמוך על הטריגר שיוסיף את המידע הדרוש
         await supabase.from('activity_log').insert([{
-          user_id: existingUserId, // אם יש, אחרת יהיה null
+          // אין לנו user_id במודל החדש, ה-trigger יטפל בזה
+          user_id: null,
           action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
-          table_name: 'registrations',
+          table_name: 'registration_data',
           details: {
             form_data: {
               name: formData.name || '',
@@ -210,6 +214,7 @@ export const Registration = () => {
               phone: formData.phone || '',
               id_number: formData.id || '',
             },
+            previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
             has_valid_phone: hasValidPhone,
             client_timestamp: new Date().toISOString()
