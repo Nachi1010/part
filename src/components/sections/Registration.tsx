@@ -131,21 +131,20 @@ export const Registration = () => {
         }
       }
       
-      // שליחה לסופבייס עם טבלה "registrations"
+      // שליחה לסופבייס עם טבלה "registration_data"
       const { error } = await supabase.from('registration_data').insert([{
-        // אל תנסה להשתמש ב-user_id קיים (עלול להיות חסום ע"י RLS)
-        // במקום זאת, ניצור שורה חדשה בכל פעם וסופאבייס ייצור לה user_id חדש
+        // לא משתמשים ב-user_id קיים כלל - סופאבייס ייצור מזהה חדש
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
+        id_number: formData.id || '',
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
           form_timestamp: new Date().toISOString(),
-          id_number: formData.id || '',
-          previous_registration_id: existingUserId || null, // קישור לרישום הקודם
-          is_update: existingUserId ? true : false // ציון שזה עדכון
+          previous_registration_id: existingUserId || null,
+          is_update: existingUserId ? true : false
         }
       }]);
 

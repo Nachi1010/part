@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Cinzel:wght@500;700&family=Cormorant+Garamond:wght@600&family=Assistant:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&family=Karantina:wght@700&family=Amatic+SC:wght@700&family=gh:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Cinzel:wght@500;700&family=Rubik:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ייבוא גופנים עם תמיכה טובה בעברית */
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600&display=swap');
 
 /* Base Styles */
 :root {
@@ -140,3 +141,4 @@ selection {
   color: inherit;
   }
 }
+@import url('https://fonts.googleapis.com/css2?family=Karantina:wght@700&family=Amatic+SC:wght@700&family=gh:wght@500;700&display=swap');
