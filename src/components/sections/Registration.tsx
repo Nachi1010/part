@@ -95,22 +95,60 @@ export const Registration = () => {
     setIsSubmitting(true);
 
     try {
-      // שליחה לסופבייס בכל מקרה
-      const { error } = await supabase.from('registration_data').insert([{
-        name: formData.name || '',
-        id_number: formData.id || '',
-        email: formData.email || '',
-        phone: formData.phone || '',
-        created_at: new Date().toISOString()
-      }]);
-
-      if (error) throw error;
-
-      // בדיקות תקינות
+      // בדיקות תקינות 
       const hasValidName = formData.name && formData.name.trim() !== '';
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
       
+      // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
+      let existingUserId = null;
+      
+      // נבדוק אם המשתמש קיים לפי אימייל
+      if (hasValidEmail) {
+        const { data: existingUserByEmail } = await supabase
+          .from('registration_data')
+          .select('user_id')
+          .eq('email', formData.email)
+          .limit(1);
+          
+        if (existingUserByEmail && existingUserByEmail.length > 0) {
+          existingUserId = existingUserByEmail[0].user_id;
+          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
+        }
+      }
+      
+      // אם לא מצאנו לפי אימייל, ננסה לפי טלפון
+      if (!existingUserId && hasValidPhone) {
+        const { data: existingUserByPhone } = await supabase
+          .from('registration_data')
+          .select('user_id')
+          .eq('phone', formData.phone)
+          .limit(1);
+          
+        if (existingUserByPhone && existingUserByPhone.length > 0) {
+          existingUserId = existingUserByPhone[0].user_id;
+          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
+        }
+      }
+      
+      // שליחה לסופבייס עם טבלה "registrations" במקום "registration_data"
+      const { error } = await supabase.from('registration_data').insert([{
+        // אם יש מזהה קיים, השתמש בו, אחרת השאר null וה-trigger ייצור מזהה חדש 
+        user_id: existingUserId || undefined,
+        name: formData.name || '',
+        email: formData.email || '',
+        phone: formData.phone || '',
+        // metadata נוספים מקומיים שניתן להוסיף
+        metadata: {
+          browser_info: navigator.userAgent,
+          form_locale: currentLang,
+          form_timestamp: new Date().toISOString(),
+          id_number: formData.id || ''
+        }
+      }]);
+
+      if (error) throw error;
+
       // בדיקת תנאים להצגת הודעת הצלחה:
       // 1. שם + אימייל תקין
       // 2. או מספר טלפון בן 9 ספרות
@@ -156,6 +194,30 @@ export const Registration = () => {
           variant: "destructive",
           duration: 7000,
         });
+      }
+
+      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לקטבלת הלוגים
+      try {
+        // רישום פעולת הרישום בלוג הפעילות
+        await supabase.from('activity_log').insert([{
+          user_id: existingUserId, // אם יש, אחרת יהיה null
+          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
+          table_name: 'registrations',
+          details: {
+            form_data: {
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
+              id_number: formData.id || '',
+            },
+            has_valid_email: hasValidEmail,
+            has_valid_phone: hasValidPhone,
+            client_timestamp: new Date().toISOString()
+          }
+        }]);
+      } catch (logError) {
+        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
+        console.warn('Failed to write to activity log:', logError);
       }
     } catch (error) {
       console.error('Registration error:', error);
