@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Karantina:wght@700&family=Cormorant+Garamond:wght@600&family=Rubik:wght@500&family=Assistant:wght@500&family=Cinzel:wght@500;700&family=Amatic+SC:wght@700&family=Heebo:wght@500;700&display=swap');
-
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { smoothScrollTo } from "@/lib/scrollUtils";
