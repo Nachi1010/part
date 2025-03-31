@@ -184,37 +184,51 @@ const Feature = ({
         }}
         
           // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
-      onFocus={() => {
+      // מגדירים משתנה כדי להימנע משימוש כפול של לחיצות (לחיצה אחת בלבד)
+let clickHandled = false;
+
+onFocus={() => {
   // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
-  if (!expandedByClick && !isMobile) { // רק אם לא היה כבר קליק
+  if (!expandedByClick && !clickHandled) { 
     setIsExpanded(true);
   }
 }}
 onBlur={() => {
   // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
-  if (!expandedByClick && !isMobile) { // רק אם לא היה כבר קליק
+  if (!expandedByClick && !clickHandled) {
     setIsExpanded(false);
   }
 }}
-// רק במובייל נאפשר התמקדות
-tabIndex={isMobile ? 0 : -1}
+
+tabIndex={isMobile ? 0 : -1}  // רק במובייל מאפשרים פוקוס
+
 // אירוע קליק בלבד
 onClick={() => {
-  if (!expandedByClick) {
-    setIsExpanded(!isExpanded); // שינוי מצב
-    setExpandedByClick(true); // סימון שהתפריט נפתח ע"י קליק ולא ע"י פוקוס או ריחוף
-  } else {
-    setIsExpanded(false); // סגור את התפריט אם כבר נפתח בקליק
+  if (!clickHandled) {
+    // ראשית סוגרים את ההתנגדויות לקליק, מוודאים שנעשה קליק
+    clickHandled = true;
+
+    // הפעלת האנימציה אחרי לחיצה
+    if (!expandedByClick) {
+      setIsExpanded(!isExpanded); 
+      setExpandedByClick(true);  // כעת כל לחיצה תסגור/תפתח את האלמנט
+    }
   }
 }}
-// אירוע על mouseUp
-onMouseUp={() => {
-  // אם הפוקוס והקליק לא מתנגשים
-  if (!expandedByClick) {
-    setIsExpanded(false);
+
+// אירוע touchStart ו touchEnd למובייל (שימור ההתנהגות)
+onTouchStart={() => {
+  if (!clickHandled) {
+    setIsExpanded(true); // התגובה המיידית במגע
+    clickHandled = true;
   }
 }}
-      >
+
+onTouchEnd={() => {
+  if (!expandedByClick) {
+    setIsExpanded(false); // סגירת האנימציה בסיום המגע
+  }
+}}      >
         <div 
           className={`rounded-lg shadow-xl transition-all duration-700 overflow-hidden border-2 relative ${
             isExpanded 
