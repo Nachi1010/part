@@ -184,7 +184,36 @@ const Feature = ({
         }}
         
           // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
-      
+      onFocus={() => {
+  // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
+  if (!expandedByClick && !isMobile) { // רק אם לא היה כבר קליק
+    setIsExpanded(true);
+  }
+}}
+onBlur={() => {
+  // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
+  if (!expandedByClick && !isMobile) { // רק אם לא היה כבר קליק
+    setIsExpanded(false);
+  }
+}}
+// רק במובייל נאפשר התמקדות
+tabIndex={isMobile ? 0 : -1}
+// אירוע קליק בלבד
+onClick={() => {
+  if (!expandedByClick) {
+    setIsExpanded(!isExpanded); // שינוי מצב
+    setExpandedByClick(true); // סימון שהתפריט נפתח ע"י קליק ולא ע"י פוקוס או ריחוף
+  } else {
+    setIsExpanded(false); // סגור את התפריט אם כבר נפתח בקליק
+  }
+}}
+// אירוע על mouseUp
+onMouseUp={() => {
+  // אם הפוקוס והקליק לא מתנגשים
+  if (!expandedByClick) {
+    setIsExpanded(false);
+  }
+}}
       >
         <div 
           className={`rounded-lg shadow-xl transition-all duration-700 overflow-hidden border-2 relative ${
