@@ -194,6 +194,32 @@ const Feature = ({
             setIsExpanded(false);
           }
         }}
+       onFocus={() => {
+  // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
+  if (!expandedByClick && isMobile) {
+    setIsExpanded(true);
+  }
+}}
+onBlur={() => {
+  // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
+  if (!expandedByClick && isMobile) {
+    setIsExpanded(false);
+  }
+}}
+// אירוע קליק בלבד
+onClick={() => {
+  // אם זה לא בהרחבת לחיצה, נסמלץ את ה-hover
+  if (!expandedByClick) {
+    setIsExpanded(!isExpanded);
+    setExpandedByClick(true); // מבטיח שהאנימציה לא תתנגש
+  }
+}}
+// ברגע שהמשתמש לוחץ, נסגור את האנימציה אם אין צורך בה
+onMouseUp={() => {
+  if (!expandedByClick) {
+    setIsExpanded(false);
+  }
+}} 
         // רק במובייל נאפשר התמקדות
         tabIndex={isMobile ? 0 : -1}
 
@@ -304,7 +330,7 @@ export const Features = () => {
     ],
     he: [
       {
-        title: "™PracticsAI - הזדמנות ייחודית בעולם",
+        title: "™PracticsAI - הזדמנות ייחודית בעולם ה-AI",
         description: "למה בעצם אין \"תואר ללימודי AI\" (או: יש מצב שחברת AI מובילה תעניק לי הכשרה מלאה??)",
         expandedText: "האופי החלוצי של תחום ה-AI ומורכבויותיו הייחודיות, הוא רק אחד הגורמים לכך שממוצע השכר בתחום הינו כפול מהממוצע בעולמות ההייטק הישן. למרות הביקוש המסחרר לעובדים בתחום ה-AI, מורגש חסר משמעותי בהיצע כח האדם הזמין. הסיבה לכך נעוצה גם היא במורכבות הייחודית של התחום",
         arrowPosition: "left" as const
