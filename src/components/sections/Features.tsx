@@ -182,47 +182,7 @@ const Feature = ({
             setIsExpanded(false);
           }
         }}
-        onFocus={() => {
-          // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
-          if (!expandedByClick && isMobile) {
-            setIsExpanded(true);
-          }
-        }}
-        onBlur={() => {
-          // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
-          if (!expandedByClick && isMobile) {
-            setIsExpanded(false);
-          }
-        }}
-       onFocus={() => {
-  // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
-  if (!expandedByClick && isMobile) {
-    setIsExpanded(true);
-  }
-}}
-onBlur={() => {
-  // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
-  if (!expandedByClick && isMobile) {
-    setIsExpanded(false);
-  }
-}}
-// אירוע קליק בלבד
-onClick={() => {
-  // אם זה לא בהרחבת לחיצה, נסמלץ את ה-hover
-  if (!expandedByClick) {
-    setIsExpanded(!isExpanded);
-    setExpandedByClick(true); // מבטיח שהאנימציה לא תתנגש
-  }
-}}
-// ברגע שהמשתמש לוחץ, נסגור את האנימציה אם אין צורך בה
-onMouseUp={() => {
-  if (!expandedByClick) {
-    setIsExpanded(false);
-  }
-}} 
-        // רק במובייל נאפשר התמקדות
-        tabIndex={isMobile ? 0 : -1}
-
+        
           // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
       
       >
