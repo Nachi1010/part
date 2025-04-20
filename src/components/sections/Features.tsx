@@ -182,53 +182,50 @@ const Feature = ({
             setIsExpanded(false);
           }
         }}
-        
-          // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
-      // מגדירים משתנה כדי להימנע משימוש כפול של לחיצות (לחיצה אחת בלבד)
-let clickHandled = false;
-
-onFocus={() => {
+        onFocus={() => {
+          // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(true);
+          }
+        }}
+        onBlur={() => {
+          // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(false);
+          }
+        }}
+       onFocus={() => {
   // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
-  if (!expandedByClick && !clickHandled) { 
+  if (!expandedByClick && isMobile) {
     setIsExpanded(true);
   }
 }}
 onBlur={() => {
   // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
-  if (!expandedByClick && !clickHandled) {
+  if (!expandedByClick && isMobile) {
     setIsExpanded(false);
   }
 }}
-
-tabIndex={isMobile ? 0 : -1}  // רק במובייל מאפשרים פוקוס
-
 // אירוע קליק בלבד
 onClick={() => {
-  if (!clickHandled) {
-    // ראשית סוגרים את ההתנגדויות לקליק, מוודאים שנעשה קליק
-    clickHandled = true;
-
-    // הפעלת האנימציה אחרי לחיצה
-    if (!expandedByClick) {
-      setIsExpanded(!isExpanded); 
-      setExpandedByClick(true);  // כעת כל לחיצה תסגור/תפתח את האלמנט
-    }
-  }
-}}
-
-// אירוע touchStart ו touchEnd למובייל (שימור ההתנהגות)
-onTouchStart={() => {
-  if (!clickHandled) {
-    setIsExpanded(true); // התגובה המיידית במגע
-    clickHandled = true;
-  }
-}}
-
-onTouchEnd={() => {
+  // אם זה לא בהרחבת לחיצה, נסמלץ את ה-hover
   if (!expandedByClick) {
-    setIsExpanded(false); // סגירת האנימציה בסיום המגע
+    setIsExpanded(!isExpanded);
+    setExpandedByClick(true); // מבטיח שהאנימציה לא תתנגש
   }
-}}      >
+}}
+// ברגע שהמשתמש לוחץ, נסגור את האנימציה אם אין צורך בה
+onMouseUp={() => {
+  if (!expandedByClick) {
+    setIsExpanded(false);
+  }
+}} 
+        // רק במובייל נאפשר התמקדות
+        tabIndex={isMobile ? 0 : -1}
+
+          // לא מבטל את הלחיצה! רק מוסיף התנהגות עבור מגע ללא לחיצה
+      
+      >
         <div 
           className={`rounded-lg shadow-xl transition-all duration-700 overflow-hidden border-2 relative ${
             isExpanded 
