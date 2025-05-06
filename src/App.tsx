@@ -7,6 +7,7 @@ import ThankYou from "./pages/ThankYou";
 import "@/components/ui/cta-button.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
+import { UserDataProvider } from "@/contexts/UserDataContext";
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel";
 import "./App.css"; // ייבוא קובץ ה-CSS העיקרי
 import { useEffect } from "react";
@@ -48,8 +49,8 @@ export const getImagePath = (path: string): string => {
   // הסר / בתחילת הנתיב אם קיים
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
-  // החזר נתיב יחסי שמתחיל ב-./ (במקום /) - כך שהדפדפן יחפש ביחס למיקום הנוכחי
-  return `./${cleanPath}`;
+  // השתמש בנתיב יחסי פשוט - עובד הן בפיתוח והן בייצור עם דומיין מותאם אישית
+  return `/${cleanPath}`;
 };
 
 const App = () => {
@@ -58,19 +59,21 @@ const App = () => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AccessibilityProvider>
-          <Toaster />
-          <AccessibilityPanel />
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </HashRouter>
-        </AccessibilityProvider>
-      </LanguageProvider>
+      <UserDataProvider>
+        <LanguageProvider>
+          <AccessibilityProvider>
+            <Toaster />
+            <AccessibilityPanel />
+            <HashRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/thank-you" element={<ThankYou />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </HashRouter>
+          </AccessibilityProvider>
+        </LanguageProvider>
+      </UserDataProvider>
     </QueryClientProvider>
   );
 };

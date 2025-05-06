@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import { useState } from "react";
+import { getImagePath } from "@/App";
 
 export const Testimonials = () => {
   const [showVideo, setShowVideo] = useState(false);
@@ -21,10 +22,10 @@ export const Testimonials = () => {
             {!showVideo ? (
               <>
                 <picture>
-                  <source srcSet="./images/3.avif" type="image/avif" />
-                  <source srcSet="./images/3.webp" type="image/webp" />
+                  <source srcSet={getImagePath("/images/3.avif")} type="image/avif" />
+                  <source srcSet={getImagePath("/images/3.webp")} type="image/webp" />
                   <img 
-                    src="./images/3.jpeg"
+                    src={getImagePath("/images/3.jpeg")}
                     alt="AI Program Video"
                     className="w-full aspect-video object-cover"
                     loading="lazy" 

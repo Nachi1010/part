@@ -170,7 +170,7 @@ const Feature = ({
           }`}
         onClick={() => {
           setIsExpanded(!isExpanded);
-          setExpandedByClick(!isExpanded);
+          setExpandedByClick(!expandedByClick);
         }}
         onMouseEnter={() => {
           if (!expandedByClick) {
@@ -182,11 +182,29 @@ const Feature = ({
             setIsExpanded(false);
           }
         }}
+        onFocus={() => {
+          // סימולציה של ריחוף במובייל באמצעות focus - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(true);
+            // אם זה לא בהרחבת לחיצה במובייל, יש אפשרות גם להרחיב
+            if (!expandedByClick && isMobile) {
+              setExpandedByClick(true); // מבטיח שהאנימציה לא תתנגש
+            }
+          }
+        }}
+        onBlur={() => {
+          // סימולציה של סיום ריחוף במובייל - פועל בדיוק כמו hover
+          if (!expandedByClick && isMobile) {
+            setIsExpanded(false);
+          }
+        }}
+        // ברגע שהמשתמש לוחץ, נסגור את האנימציה אם אין צורך בה
         onMouseUp={() => {
           if (!expandedByClick) {
             setIsExpanded(false);
           }
-        }} 
+        }}
+        // רק במובייל נאפשר התמקדות
         tabIndex={isMobile ? 0 : -1}
       >
         <div 

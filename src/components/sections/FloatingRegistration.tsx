@@ -1,24 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserData } from "@/contexts/UserDataContext";
 import { getImagePath } from "@/App";
+import { X } from "lucide-react";
 
-// טופס רישום עם עיצוב מותאם ולוגיקה משופרת
-export const Registration = () => {
+// קומפוננטת רישום צפה שמופיעה לאחר גלילה בדף
+export const FloatingRegistration = () => {
   const { currentLang, getTextDirection } = useLanguage();
   const { userIp, isIpLoaded } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [dismissedTime, setDismissedTime] = useState<number | null>(null);
   const navigate = useNavigate();
   
-  // מצב הטופס
+  // מעקב אחר זמן השהייה בדף ופתיחת הטופס
+  useEffect(() => {
+    // קבועי זמן
+    const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית
+    const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת
+    
+    let timer: ReturnType<typeof setTimeout>;
+    
+    // בודק אם הטופס כבר נסגר בעבר והאם עבר מספיק זמן להצגה חוזרת
+    if (isDismissed && dismissedTime) {
+      const timeSinceDismiss = Date.now() - dismissedTime;
+      
+      // אם עברה דקה מאז שהטופס נסגר, נאפשר הצגה חוזרת
+      if (timeSinceDismiss >= REAPPEAR_DELAY) {
+        console.log('Re-enabling form after 1 minute since dismiss');
+        setIsDismissed(false);
+        setDismissedTime(null);
+      } else {
+        // אם טרם עברה דקה, נמתין עד שתעבור דקה מהסגירה
+        const remainingTime = REAPPEAR_DELAY - timeSinceDismiss;
+        timer = setTimeout(() => {
+          console.log('Time to show form again after dismiss');
+          setIsDismissed(false);
+          setDismissedTime(null);
+        }, remainingTime);
+      }
+    } 
+    // אם הטופס לא נסגר בעבר ולא מוצג כרגע, נציג אותו אחרי חצי דקה
+    else if (!isDismissed && !isVisible) {
+      timer = setTimeout(() => {
+        console.log('Showing floating registration form after 30 seconds');
+        setIsVisible(true);
+      }, INITIAL_SHOW_DELAY);
+    }
+    
+    // ניקוי הטיימר
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isDismissed, isVisible, dismissedTime]);
+  
+  // מצב הטופס - ללא שדה תעודת זהות
   const [formData, setFormData] = useState({
     name: "",
-    id: "",
     email: "",
     phone: ""
   });
@@ -32,18 +74,24 @@ export const Registration = () => {
     }));
   };
 
+  // סגירת הטופס
+  const handleDismiss = () => {
+    setIsVisible(false);
+    setIsDismissed(true);
+    setDismissedTime(Date.now()); // שומר את הזמן שבו הטופס נסגר
+    console.log('Form dismissed, will reappear in 1 minute');
+  };
+
   // תרגומים
   const translations = {
     en: {
-      title: "Join Our Elite Program",
-      subtitle: "Take your first step towards AI mastery",
+      title: "Don't miss out!",
+      subtitle: "Register now for early access",
       namePlaceholder: "Enter your full name",
-      idPlaceholder: "Enter your ID number",
       emailPlaceholder: "you@example.com",
       phonePlaceholder: "Enter your phone number",
-      submitButton: "Join our journey",
+      submitButton: "Register Now",
       nameLabel: "Full Name",
-      idLabel: "ID Number",
       emailLabel: "Email Address",
       phoneLabel: "Phone Number",
       successMessage: "Registration submitted successfully!",
@@ -55,15 +103,13 @@ export const Registration = () => {
       loading: "Processing..."
     },
     he: {
-      title: "הגישו מועמדות לתכנית",
-      subtitle: "רוכשים משרה נחשקת ומומחיות ב-AI",
+      title: "אל תפספסו!",
+      subtitle: "הירשמו עכשיו לגישה מוקדמת",
       namePlaceholder: "ישראל ישראלי",
-      idPlaceholder: "0-0000000-0",
       emailPlaceholder: "your@email.com",
       phonePlaceholder: "050-000-0000",
-      submitButton: "הצטרפו אלינו",
+      submitButton: "הירשמו עכשיו",
       nameLabel: "שם מלא",
-      idLabel: "מספר זהות",
       emailLabel: "כתובת אימייל",
       phoneLabel: "מספר טלפון",
       successMessage: "ההרשמה הושלמה בהצלחה!",
@@ -116,7 +162,6 @@ export const Registration = () => {
           
         if (existingUserByEmail && existingUserByEmail.length > 0) {
           existingUserId = existingUserByEmail[0].user_id;
-          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
         }
       }
       
@@ -130,27 +175,24 @@ export const Registration = () => {
           
         if (existingUserByPhone && existingUserByPhone.length > 0) {
           existingUserId = existingUserByPhone[0].user_id;
-          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
         }
       }
       
       // הכנת האובייקט לשליחה לסופאבייס
       const registrationData = {
-        // לא משתמשים ב-user_id קיים כלל - סופאבייס ייצור מזהה חדש
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        id_number: formData.id || '',
-        // הוספת כתובת IP מהקונטקסט אם היא זמינה
         ip_address: userIp || null,
-        // שמירת זיהוי של רשומות קודמות במטא-דאטה
+        source: 'floating_form', // סימון שמקור ההרשמה הוא מהטופס הצף
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
+          ip_was_loaded: isIpLoaded,
+          user_scroll_time: true
         }
       };
       
@@ -159,16 +201,11 @@ export const Registration = () => {
 
       if (error) throw error;
 
-      // בדיקת תנאים להצגת הודעת הצלחה:
-      // 1. שם + אימייל תקין
-      // 2. או מספר טלפון בן 9 ספרות
+      // בדיקת תנאים להצגת הודעת הצלחה
       const nameAndEmailValid = hasValidName && hasValidEmail;
       const phoneValid = hasValidPhone;
       const showSuccessMessage = nameAndEmailValid || phoneValid;
       
-      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
-      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
-
       if (showSuccessMessage) {
         // הצגת הודעת הצלחה
         toast({
@@ -178,10 +215,8 @@ export const Registration = () => {
           duration: 5000,
         });
         
-        // ניווט לדף תודה רק אם כל הפרטים מולאו
-        if (allFieldsValid) {
-          navigate('/thank-you');
-        }
+        // סגירת הטופס לאחר הרשמה מוצלחת
+        handleDismiss();
       } else {
         // הצגת הודעת שגיאה עם פירוט החסרים
         let errorDetails = t.validationError + "\n";
@@ -205,33 +240,6 @@ export const Registration = () => {
           duration: 7000,
         });
       }
-
-      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לקטבלת הלוגים
-      try {
-        // אין לנו את ה-user_id החדש כי הוא נוצר אוטומטית בסופאבייס
-        // לכן נשתמש ב-null ונסמוך על הטריגר שיוסיף את המידע הדרוש
-        await supabase.from('activity_log').insert([{
-          // אין לנו user_id במודל החדש, ה-trigger יטפל בזה
-          user_id: null,
-          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
-          table_name: 'registration_data',
-          details: {
-            form_data: {
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
-              id_number: formData.id || '',
-            },
-            previous_registration_id: existingUserId,
-            has_valid_email: hasValidEmail,
-            has_valid_phone: hasValidPhone,
-            client_timestamp: new Date().toISOString()
-          }
-        }]);
-      } catch (logError) {
-        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
-        console.warn('Failed to write to activity log:', logError);
-      }
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -248,53 +256,55 @@ export const Registration = () => {
   // קבלת ערך ה-direction המתאים לשפה
   const direction = getTextDirection();
 
+  // אם הטופס לא מוצג, לא נרנדר כלום
+  if (!isVisible || isDismissed) return null;
+
   return (
     <div 
-      id="registration-form"
-      className="py-20 min-h-screen flex items-center justify-center"
-      style={{ 
+      className="fixed bottom-0 left-0 right-0 z-50 p-4 transform transition-transform duration-500 ease-in-out"
+      style={{
         direction,
-        position: "relative",
-        overflow: "hidden"
+        transform: isVisible ? 'translateY(0)' : 'translateY(100%)'
       }}
     >
-      {/* רקע קבוע */}
-      <div 
-        className="fixed inset-0" 
-        style={{
-          backgroundImage: `url('${getImagePath("/images/D.avif")}'), url('${getImagePath("/images/D.webp")}'), url('${getImagePath("/images/D.jpeg")}')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: "brightness(0.4)", 
-          zIndex: "-1"
-        }}
-      ></div>
-      
-      <div className="w-full max-w-md px-6">
-        {/* כרטיס הטופס - עם סגנון סטטי לחלוטין */}
+      <div className="mx-auto max-w-md">
+        {/* כרטיס הטופס - עם עיצוב צף */}
         <div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-t-lg shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          style={{ 
+            boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)'
+          }}
         >
+          {/* כפתור סגירה */}
+          <button 
+            onClick={handleDismiss}
+            className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label="סגור טופס"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+          
           {/* כותרת */}
           <div 
-            className="p-8" 
-            style={{ backgroundColor: "#1e293b" }}
+            className="p-6" 
+            style={{ 
+              background: 'linear-gradient(135deg, #2b4c7e 0%, #1e293b 100%)'
+            }}
           >
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-white mb-1">
               {t.title}
             </h2>
-            <p className="text-white opacity-80">
+            <p className="text-white opacity-80 text-sm">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-8">
-            <form onSubmit={onSubmit} className="space-y-5">
+          <div className="p-6">
+            <form onSubmit={onSubmit} className="space-y-4">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.nameLabel}
                 </label>
                 <input
@@ -303,28 +313,13 @@ export const Registration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* מספר זהות */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  {t.idLabel}
-                </label>
-                <input
-                  type="text"
-                  name="id"
-                  placeholder={t.idPlaceholder}
-                  value={formData.id}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.emailLabel}
                 </label>
                 <input
@@ -333,13 +328,13 @@ export const Registration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -349,18 +344,18 @@ export const Registration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
-              {/* כפתור שליחה - עם מרווח מהשורה האחרונה */}
-              <div className="pt-5">
+              {/* כפתור שליחה */}
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full py-3 px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
                   style={{ 
-                    backgroundColor: "#334155"
+                    background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
                   }}
                 >
                   {isSubmitting ? (
@@ -380,4 +375,4 @@ export const Registration = () => {
       </div>
     </div>
   );
-};
+}; 
