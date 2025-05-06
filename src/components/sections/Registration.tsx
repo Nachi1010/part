@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getImagePath } from "@/App";
 
 // טופס רישום עם עיצוב מותאם ולוגיקה משופרת
 export const Registration = () => {
@@ -253,7 +254,7 @@ export const Registration = () => {
       <div 
         className="fixed inset-0" 
         style={{
-          backgroundImage: "url('/images/D.jpeg')",
+          backgroundImage: `url('${getImagePath("/images/D.avif")}'), url('${getImagePath("/images/D.webp")}'), url('${getImagePath("/images/D.jpeg")}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

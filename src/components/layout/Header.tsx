@@ -63,11 +63,15 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             className="flex items-center hover:opacity-90 transition-opacity"
             aria-label="Home"
           >
-            <img 
-              src={getImagePath("/images/2.png")}
-              alt="CloserAI"
-              className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
-            />
+            <picture>
+              <source srcSet={getImagePath("/images/2.avif")} type="image/avif" />
+              <source srcSet={getImagePath("/images/2.webp")} type="image/webp" />
+              <img 
+                src={getImagePath("/images/2.png")}
+                alt="CloserAI"
+                className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
+              />
+            </picture>
           </Link>
         </div>
         <Button 

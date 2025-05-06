@@ -31,13 +31,17 @@ export const Hero = () => {
 
   return (
     <header id="hero" className="main-header relative text-center text-white h-[clamp(15vh,45vw,83vh)] overflow-hidden -mt-[clamp(1rem,2vw,2rem)]">
-      <img 
-        src={getImagePath("/images/1.jpeg")}
-        alt="AI Revolution Background"
-        className="absolute top-0 left-0 w-full h-[calc(100%+clamp(1rem,2vw,2rem))] object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
-        loading="eager"
-        fetchPriority="high"
-      />
+      <picture>
+        <source srcSet={getImagePath("/images/1.avif")} type="image/avif" />
+        <source srcSet={getImagePath("/images/1.webp")} type="image/webp" />
+        <img 
+          src={getImagePath("/images/1.jpeg")}
+          alt="AI Revolution Background"
+          className="absolute top-0 left-0 w-full h-[calc(100%+clamp(1rem,2vw,2rem))] object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </picture>
       
       {/* Enhanced overlay with gradient for better text visibility */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/60 via-black/50 to-black/60 z-0" />

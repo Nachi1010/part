@@ -5,18 +5,18 @@ export function PartnerLogos() {
   const { currentLang } = useLanguage();
 
   const partners = [
-    { name: "Google", logo: "/images/partners/google.png" },
-    { name: "Microsoft", logo: "/images/partners/microsoft.png" },
-    { name: "Amazon", logo: "/images/partners/amazon.png" },
-    { name: "Meta", logo: "/images/partners/meta.png" },
-    { name: "NVIDIA", logo: "/images/partners/nvidia.png" },
-    { name: "OpenAI", logo: "/images/partners/open.png" },
-    { name: "Anthropic", logo: "/images/partners/antrophic.png" },
-    { name: "AI21", logo: "/images/partners/ai21.png" },
-    { name: "RunAI", logo: "/images/partners/runai.png" },
-    { name: "Codum", logo: "/images/partners/codum.png" },
-    { name: "DID", logo: "/images/partners/did.png" },
-    { name: "Xupr", logo: "/images/partners/xupr thbyk.png" },
+    { name: "Google", logo: "/images/partners/google.png", logoWebp: "/images/partners/google.webp", logoAvif: "/images/partners/google.avif" },
+    { name: "Microsoft", logo: "/images/partners/microsoft.png", logoWebp: "/images/partners/microsoft.webp", logoAvif: "/images/partners/microsoft.avif" },
+    { name: "Amazon", logo: "/images/partners/amazon.png", logoWebp: "/images/partners/amazon.webp", logoAvif: "/images/partners/amazon.avif" },
+    { name: "Meta", logo: "/images/partners/meta.png", logoWebp: "/images/partners/meta.webp", logoAvif: "/images/partners/meta.avif" },
+    { name: "NVIDIA", logo: "/images/partners/nvidia.png", logoWebp: "/images/partners/nvidia.webp", logoAvif: "/images/partners/nvidia.avif" },
+    { name: "OpenAI", logo: "/images/partners/open.png", logoWebp: "/images/partners/open.webp", logoAvif: "/images/partners/open.avif" },
+    { name: "Anthropic", logo: "/images/partners/antrophic.png", logoWebp: "/images/partners/antrophic.webp", logoAvif: "/images/partners/antrophic.avif" },
+    { name: "AI21", logo: "/images/partners/ai21.png", logoWebp: "/images/partners/ai21.webp", logoAvif: "/images/partners/ai21.avif" },
+    { name: "RunAI", logo: "/images/partners/runai.png", logoWebp: "/images/partners/runai.webp", logoAvif: "/images/partners/runai.avif" },
+    { name: "Codum", logo: "/images/partners/codum.png", logoWebp: "/images/partners/codum.webp", logoAvif: "/images/partners/codum.avif" },
+    { name: "DID", logo: "/images/partners/did.png", logoWebp: "/images/partners/did.webp", logoAvif: "/images/partners/did.avif" },
+    { name: "Xupr", logo: "/images/partners/xupr thbyk.png", logoWebp: "/images/partners/xupr thbyk.webp", logoAvif: "/images/partners/xupr thbyk.avif" },
   ];
 
   const translations = {
@@ -41,7 +41,11 @@ export function PartnerLogos() {
             <div className="logo-slide">
               {partners.map((partner, index) => (
                 <div key={`p1-${index}`} className="logo-slide-item">
-                  <img src={getImagePath(partner.logo)} alt={partner.name} className="h-16 object-contain filter grayscale hover:grayscale-0 transition-all duration-300" />
+                  <picture>
+                    <source srcSet={getImagePath(partner.logoAvif)} type="image/avif" />
+                    <source srcSet={getImagePath(partner.logoWebp)} type="image/webp" />
+                    <img src={getImagePath(partner.logo)} alt={partner.name} className="h-16 object-contain filter grayscale hover:grayscale-0 transition-all duration-300" />
+                  </picture>
                 </div>
               ))}
             </div>
@@ -50,7 +54,11 @@ export function PartnerLogos() {
             <div className="logo-slide">
               {partners.map((partner, index) => (
                 <div key={`p2-${index}`} className="logo-slide-item">
-                  <img src={getImagePath(partner.logo)} alt={partner.name} className="h-16 object-contain filter grayscale hover:grayscale-0 transition-all duration-300" />
+                  <picture>
+                    <source srcSet={getImagePath(partner.logoAvif)} type="image/avif" />
+                    <source srcSet={getImagePath(partner.logoWebp)} type="image/webp" />
+                    <img src={getImagePath(partner.logo)} alt={partner.name} className="h-16 object-contain filter grayscale hover:grayscale-0 transition-all duration-300" />
+                  </picture>
                 </div>
               ))}
             </div>

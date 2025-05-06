@@ -21,17 +21,21 @@ export const Testimonials = () => {
           <div className="relative rounded-xl overflow-hidden shadow-lg">
             {!showVideo ? (
               <>
-                <img 
-                  src={getImagePath("/images/3.jpeg")}
-                  alt="AI Program Video"
-                  className="w-full aspect-video object-cover"
-                  loading="lazy" 
-                  width="1280"
-                  height="720"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/1280x720/333/fff?text=Video+Thumbnail";
-                  }}
-                />
+                <picture>
+                  <source srcSet={getImagePath("/images/3.avif")} type="image/avif" />
+                  <source srcSet={getImagePath("/images/3.webp")} type="image/webp" />
+                  <img 
+                    src={getImagePath("/images/3.jpeg")}
+                    alt="AI Program Video"
+                    className="w-full aspect-video object-cover"
+                    loading="lazy" 
+                    width="1280"
+                    height="720"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://via.placeholder.com/1280x720/333/fff?text=Video+Thumbnail";
+                    }}
+                  />
+                </picture>
                 
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button 

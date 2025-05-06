@@ -1,0 +1,96 @@
+/* יבוא פונטים מקומיים */
+
+/* Assistant Font */
+@font-face {
+  font-family: 'Assistant';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./Assistant-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Assistant';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./Assistant-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Assistant';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./Assistant-Bold.woff2') format('woff2');
+}
+
+/* Heebo Font */
+@font-face {
+  font-family: 'Heebo';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./Heebo-Medium.woff2') format('woff2');
+}
+
+/* Rubik Font */
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./Rubik-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./Rubik-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./Rubik-SemiBold.woff2') format('woff2');
+}
+
+/* Amatic SC Font */
+@font-face {
+  font-family: 'Amatic SC';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./AmaticSC-Bold.woff2') format('woff2');
+}
+
+/* Oswald Font */
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./Oswald-Bold.woff2') format('woff2');
+}
+
+/* Cinzel Font */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./Cinzel-Medium.woff2') format('woff2');
+}
+
+/* Cormorant Garamond Font */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./CormorantGaramond-SemiBold.woff2') format('woff2');
+} 
