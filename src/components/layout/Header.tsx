@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Menu, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getImagePath } from "@/App";
 import { Link } from "react-router-dom";
 
 interface HeaderProps {
@@ -64,10 +63,10 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             aria-label="Home"
           >
             <picture>
-              <source srcSet={getImagePath("/images/2.avif")} type="image/avif" />
-              <source srcSet={getImagePath("/images/2.webp")} type="image/webp" />
+              <source srcSet="./images/2.avif" type="image/avif" />
+              <source srcSet="./images/2.webp" type="image/webp" />
               <img 
-                src={getImagePath("/images/2.png")}
+                src="./images/2.png"
                 alt="CloserAI"
                 className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
               />

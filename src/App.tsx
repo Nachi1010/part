@@ -48,8 +48,8 @@ export const getImagePath = (path: string): string => {
   // הסר / בתחילת הנתיב אם קיים
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
-  // השתמש בנתיב יחסי פשוט - עובד הן בפיתוח והן בייצור עם דומיין מותאם אישית
-  return `/${cleanPath}`;
+  // החזר נתיב יחסי שמתחיל ב-./ (במקום /) - כך שהדפדפן יחפש ביחס למיקום הנוכחי
+  return `./${cleanPath}`;
 };
 
 const App = () => {

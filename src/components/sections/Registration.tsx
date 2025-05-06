@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,25 @@ import { getImagePath } from "@/App";
 export const Registration = () => {
   const { currentLang, getTextDirection } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userIp, setUserIp] = useState("");
   const navigate = useNavigate();
+  
+  // קבלת כתובת ה-IP האמיתית של המשתמש
+  useEffect(() => {
+    const fetchUserIp = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        if (data && data.ip) {
+          setUserIp(data.ip);
+        }
+      } catch (error) {
+        console.error('Error fetching IP address:', error);
+      }
+    };
+    
+    fetchUserIp();
+  }, []);
   
   // מצב הטופס
   const [formData, setFormData] = useState({
@@ -139,6 +157,7 @@ export const Registration = () => {
         email: formData.email || '',
         phone: formData.phone || '',
         id_number: formData.id || '',
+        ip_address: userIp || null,
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
