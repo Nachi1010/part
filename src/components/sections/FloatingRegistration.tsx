@@ -183,7 +183,6 @@ export const FloatingRegistration = () => {
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        ip_address: userIp || null,
         source: 'floating_form', // סימון שמקור ההרשמה הוא מהטופס הצף
         metadata: {
           browser_info: navigator.userAgent,
@@ -195,6 +194,18 @@ export const FloatingRegistration = () => {
           user_scroll_time: true
         }
       };
+      
+      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
+      if (userIp && userIp.trim() !== '') {
+        try {
+          registrationData['ip_address'] = userIp;
+          
+          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
+          registrationData.metadata['ip_address'] = userIp;
+        } catch (ipError) {
+          console.warn('Could not add IP address to registration data', ipError);
+        }
+      }
       
       // שליחה לסופבייס עם טבלה "registration_data"
       const { error } = await supabase.from('registration_data').insert([registrationData]);

@@ -141,8 +141,6 @@ export const Registration = () => {
         email: formData.email || '',
         phone: formData.phone || '',
         id_number: formData.id || '',
-        // הוספת כתובת IP מהקונטקסט אם היא זמינה
-        ip_address: userIp || null,
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
@@ -153,6 +151,19 @@ export const Registration = () => {
           ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
         }
       };
+      
+      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
+      // אם השרת אינו תומך בשדה, הוא יישמט באופן אוטומטי
+      if (userIp && userIp.trim() !== '') {
+        try {
+          registrationData['ip_address'] = userIp;
+          
+          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
+          registrationData.metadata['ip_address'] = userIp;
+        } catch (ipError) {
+          console.warn('Could not add IP address to registration data', ipError);
+        }
+      }
       
       // שליחה לסופבייס עם טבלה "registration_data"
       const { error } = await supabase.from('registration_data').insert([registrationData]);
