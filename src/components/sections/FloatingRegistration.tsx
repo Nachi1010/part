@@ -18,7 +18,20 @@ export const FloatingRegistration = () => {
   const [userScrolledAfterMainForm, setUserScrolledAfterMainForm] = useState(false);
   const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const formTimestampRef = useRef<number>(Date.now());
+  
+  // בדיקה אם המשתמש מגיע ממכשיר נייד
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      setIsMobile(userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone'));
+    };
+    
+    checkMobile();
+    
+    console.log("המשתמש מגיע ממכשיר: ", isMobile ? "נייד" : "דסקטופ");
+  }, []);
   
   // מצב הטופס - ללא שדה תעודת זהות
   const [formData, setFormData] = useState({
@@ -51,9 +64,14 @@ export const FloatingRegistration = () => {
       }
       
       // בודק אם הטופס הרגיל נראה בחלון הדפדפן
-      const isMainFormVisible = mainFormElement ? 
+      let isMainFormVisible = false;
+      try {
+        isMainFormVisible = mainFormElement ? 
         mainFormElement.getBoundingClientRect().top < window.innerHeight && 
         mainFormElement.getBoundingClientRect().bottom > 0 : false;
+      } catch (error) {
+        console.error("שגיאה בבדיקת נראות הטופס הראשי:", error);
+      }
       
       // אם הטופס הרגיל נראה בחלון הדפדפן
       if (isMainFormVisible) {
@@ -98,20 +116,35 @@ export const FloatingRegistration = () => {
       }, 100);
     };
     
-    // הוספת האזנה לאירועי גלילה
-    window.addEventListener('scroll', handleScroll);
+    // הוספת האזנה לאירועי גלילה - מטפל גם באירועי מגע
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // במכשירים ניידים, מאזינים גם לאירועי מגע כדי לשפר את חוויית המשתמש
+    if (isMobile) {
+      const handleTouchMove = () => {
+        setHasScrolled(true);
+      };
+      
+      window.addEventListener('touchmove', handleTouchMove, { passive: true });
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('touchmove', handleTouchMove);
+        clearTimeout(scrollTimeout);
+      };
+    }
     
     // ניקוי האזנה בעת פירוק הקומפוננטה
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [userInteractedWithMainForm, userScrolledAfterMainForm, formData, lastSubmitTime, hasScrolled, isDismissed, isVisible]);
+  }, [userInteractedWithMainForm, userScrolledAfterMainForm, formData, lastSubmitTime, hasScrolled, isDismissed, isVisible, isMobile]);
   
   // מעקב אחר זמן השהייה בדף ופתיחת הטופס
   useEffect(() => {
     // קבועי זמן - מעודכנים לפי דרישת המשימה
-    const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית (30 שניות)
+    const INITIAL_SHOW_DELAY = isMobile ? 20000 : 30000; // בנייד מציג מהר יותר (20 שניות)
     const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת (60 שניות)
     const AFTER_MAIN_FORM_DELAY = 30000; // חצי דקה אחרי גלילה מהטופס הראשי
     
@@ -119,11 +152,17 @@ export const FloatingRegistration = () => {
     const currentTime = Date.now();
     
     // בדיקה אם הטופס הרגיל מוצג כרגע - במקרה זה אין להציג את הטופס הצף
+    let isMainFormVisible = false;
+    try {
     const mainFormElement = document.getElementById('registration-form');
-    const isMainFormVisible = mainFormElement ? 
+      isMainFormVisible = mainFormElement ? 
       mainFormElement.getBoundingClientRect().top < window.innerHeight && 
       mainFormElement.getBoundingClientRect().bottom > 0 : false;
+    } catch (error) {
+      console.error("שגיאה בבדיקת נראות הטופס הראשי:", error);
+    }
     
+    // בדיקות פתיחה במצבים שונים
     console.log("מצב טופס צף:", { 
       isDismissed, 
       isVisible, 
@@ -131,7 +170,8 @@ export const FloatingRegistration = () => {
       isMainFormVisible,
       userInteractedWithMainForm,
       userScrolledAfterMainForm,
-      dismissedTime: dismissedTime ? new Date(dismissedTime).toLocaleTimeString() : "אין"
+      dismissedTime: dismissedTime ? new Date(dismissedTime).toLocaleTimeString() : "אין",
+      isMobile
     });
     
     // חוק 1: אם המשתמש סגר את הטופס באופן יזום, נציג אותו שוב לאחר דקה
@@ -151,6 +191,7 @@ export const FloatingRegistration = () => {
         
         timer = setTimeout(() => {
           // נבדוק שוב שהטופס הראשי לא מוצג כרגע
+          try {
           const mainFormElement = document.getElementById('registration-form');
           const isMainFormVisibleNow = mainFormElement ? 
             mainFormElement.getBoundingClientRect().top < window.innerHeight && 
@@ -161,6 +202,9 @@ export const FloatingRegistration = () => {
             setDismissedTime(null);
             setIsVisible(true);
             console.log("מציג טופס צף שוב לאחר סגירה יזומה וסיום זמן המתנה");
+            }
+          } catch (error) {
+            console.error("שגיאה בניסיון להציג את הטופס לאחר הסגירה:", error);
           }
         }, remainingTime);
       }
@@ -172,6 +216,7 @@ export const FloatingRegistration = () => {
       
       timer = setTimeout(() => {
         // בדיקה נוספת שהטופס הראשי לא נראה כעת
+        try {
         const mainFormElement = document.getElementById('registration-form');
         const isMainFormVisibleNow = mainFormElement ? 
           mainFormElement.getBoundingClientRect().top < window.innerHeight && 
@@ -182,6 +227,9 @@ export const FloatingRegistration = () => {
           console.log("מציג טופס צף לאחר גלילה ראשונית והשהייה של חצי דקה");
         } else {
           console.log("דילוג על הצגת טופס צף כי הטופס העיקרי מוצג כעת");
+          }
+        } catch (error) {
+          console.error("שגיאה בניסיון להציג את הטופס לאחר גלילה ראשונית:", error);
         }
       }, INITIAL_SHOW_DELAY);
     }
@@ -201,6 +249,7 @@ export const FloatingRegistration = () => {
         
         timer = setTimeout(() => {
           // בדיקה נוספת שהטופס הראשי לא נראה כעת
+          try {
           const mainFormElement = document.getElementById('registration-form');
           const isMainFormVisibleNow = mainFormElement ? 
             mainFormElement.getBoundingClientRect().top < window.innerHeight && 
@@ -209,15 +258,19 @@ export const FloatingRegistration = () => {
           if (!isMainFormVisibleNow) {
             setIsVisible(true);
             console.log("מציג טופס צף לאחר חצי דקה מגלילה מהטופס הראשי");
+            }
+          } catch (error) {
+            console.error("שגיאה בניסיון להציג את הטופס לאחר גלילה מהטופס הראשי:", error);
           }
         }, remainingTime);
       }
     }
     
+    // ניקוי הטיימר בעת פירוק הקומפוננטה
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isDismissed, isVisible, dismissedTime, hasScrolled, userScrolledAfterMainForm, formTimestampRef, userInteractedWithMainForm]);
+  }, [isDismissed, isVisible, dismissedTime, hasScrolled, userScrolledAfterMainForm, formTimestampRef, userInteractedWithMainForm, isMobile]);
   
   // עדכון ערכים
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -491,6 +544,7 @@ export const FloatingRegistration = () => {
       // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
       let existingUserId = null;
       
+      try {
       // נבדוק אם המשתמש קיים לפי אימייל
       if (hasValidEmail) {
         const { data: existingUserByEmail } = await supabase
@@ -517,6 +571,10 @@ export const FloatingRegistration = () => {
           existingUserId = existingUserByPhone[0].user_id;
           console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
         }
+        }
+      } catch (searchError) {
+        console.error("שגיאה בחיפוש משתמש קיים:", searchError);
+        // ממשיכים בתהליך גם אם יש שגיאה בחיפוש
       }
       
       // הכנת האובייקט לשליחה לסופאבייס - בדיוק כמו ברגיסטריישן המקורי
@@ -525,7 +583,9 @@ export const FloatingRegistration = () => {
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        source: isAutoSubmit ? 'auto_submit_after_scroll' : 'floating_form',
+        source: isAutoSubmit 
+          ? isMobile ? 'mobile_auto_submit_after_scroll' : 'auto_submit_after_scroll'
+          : isMobile ? 'mobile_floating_form' : 'floating_form',
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
@@ -533,7 +593,9 @@ export const FloatingRegistration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
+          ip_was_loaded: isIpLoaded, // מידע נוסף לצורכי ניטור
+          is_mobile: isMobile,
+          is_auto_submit: isAutoSubmit
         }
       };
       
@@ -779,7 +841,7 @@ export const FloatingRegistration = () => {
           
           {/* גוף הטופס */}
           <div className="p-6 pt-4">
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4" noValidate>
               {/* שם */}
               <div>
                 <label className="block text-sm font-medium mb-1 text-slate-200">
@@ -802,6 +864,7 @@ export const FloatingRegistration = () => {
                 </label>
                 <input
                   type="email"
+                  inputMode="email"
                   name="email"
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
@@ -817,6 +880,7 @@ export const FloatingRegistration = () => {
                 </label>
                 <input
                   type="tel"
+                  inputMode="tel"
                   name="phone"
                   placeholder={t.phonePlaceholder}
                   value={formData.phone}
