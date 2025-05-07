@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,6 +16,15 @@ export const FloatingRegistration = () => {
   const [dismissedTime, setDismissedTime] = useState<number | null>(null);
   const [userInteractedWithMainForm, setUserInteractedWithMainForm] = useState(false);
   const [userScrolledAfterMainForm, setUserScrolledAfterMainForm] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
+  const formTimestampRef = useRef<number>(Date.now());
+  
+  // מצב הטופס - ללא שדה תעודת זהות
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
   
   // מעקב אחר טופס הרגיל וגלילה
   useEffect(() => {
@@ -23,23 +32,46 @@ export const FloatingRegistration = () => {
     const mainFormElement = document.getElementById('registration-form');
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
+    let lastAutoSubmitTime = 0;
+    const AUTO_SUBMIT_COOLDOWN = 120000; // 2 דקות בין שליחות אוטומטיות
     
     // בדיקה אם המשתמש התקדם מעבר לטופס הרגיל (גלל מטה)
     const handleScroll = () => {
       const currentScrollPosition = window.scrollY;
+      const currentTime = Date.now();
       
-      // בודק אם המשתמש השתמש בטופס הרגיל
-      if (mainFormElement) {
-        const formRect = mainFormElement.getBoundingClientRect();
-        
-        // אם הטופס נראה בחלון הדפדפן והמשתמש כבר השתמש בו
-        if (formRect.top < window.innerHeight && formRect.bottom > 0) {
-          setUserInteractedWithMainForm(true);
+      // בודק אם הטופס הרגיל נראה בחלון הדפדפן
+      const isMainFormVisible = mainFormElement ? 
+        mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+        mainFormElement.getBoundingClientRect().bottom > 0 : false;
+      
+      // אם הטופס הרגיל נראה בחלון הדפדפן
+      if (isMainFormVisible) {
+        setUserInteractedWithMainForm(true);
+        // כאשר המשתמש רואה את הטופס הרגיל, אנחנו מאפסים את זמן הסגירה האחרון
+        // כדי שהטופס הצף לא יופיע מחדש בזמן שהמשתמש מעיין בטופס הרגיל
+        setDismissedTime(null);
+        setIsDismissed(true); // מונע מהטופס הצף להופיע
+      }
+      
+      // אם המשתמש כבר השתמש בטופס הרגיל וכעת גולל למקום אחר (הטופס לא נראה)
+      if (userInteractedWithMainForm && !isMainFormVisible) {
+        // אם המשתמש עדיין לא סימן שגלל אחרי הטופס הרגיל, נסמן כעת
+        if (!userScrolledAfterMainForm) {
+          setUserScrolledAfterMainForm(true);
+          // איפוס זמן הקפיצה הצפה לאחר אינטראקציה וגלילה
+          formTimestampRef.current = Date.now();
         }
         
-        // אם המשתמש גלל מטה אחרי שהשתמש בטופס
-        if (userInteractedWithMainForm && currentScrollPosition > scrollPosition && formRect.bottom < 0) {
-          setUserScrolledAfterMainForm(true);
+        // בדיקה אם צריך לשלוח את הנתונים באופן אוטומטי
+        // רק אם יש נתונים כלשהם בטופס וחלפו לפחות 2 דקות מהשליחה האחרונה
+        if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN &&
+            (formData.name || formData.email || formData.phone) &&
+            currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
+          
+          // שולח את הנתונים באופן אוטומטי לאחר גלילה
+          submitFormData(true);
+          lastAutoSubmitTime = currentTime;
         }
       }
       
@@ -60,19 +92,26 @@ export const FloatingRegistration = () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [userInteractedWithMainForm]);
+  }, [userInteractedWithMainForm, userScrolledAfterMainForm, formData, lastSubmitTime]);
   
   // מעקב אחר זמן השהייה בדף ופתיחת הטופס - עם התנאים החדשים
   useEffect(() => {
     // קבועי זמן
-    const INITIAL_SHOW_DELAY = 60000; // דקה להצגה ראשונית
-    const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת
+    const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית (30 שניות)
+    const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת (60 שניות)
     
     let timer: ReturnType<typeof setTimeout>;
+    const currentTime = Date.now();
     
-    // בודק אם הטופס כבר נסגר בעבר והאם עבר מספיק זמן להצגה חוזרת
-    if (isDismissed && dismissedTime) {
-      const timeSinceDismiss = Date.now() - dismissedTime;
+    // בדיקה אם הטופס הרגיל מוצג כרגע - במקרה זה אין להציג את הטופס הצף
+    const mainFormElement = document.getElementById('registration-form');
+    const isMainFormVisible = mainFormElement ? 
+      mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+      mainFormElement.getBoundingClientRect().bottom > 0 : false;
+      
+    // אם הטופס כבר נסגר בעבר והאם עבר מספיק זמן להצגה חוזרת
+    if (isDismissed && dismissedTime && !isMainFormVisible) {
+      const timeSinceDismiss = currentTime - dismissedTime;
       
       // אם עברה דקה מאז שהטופס נסגר, נאפשר הצגה חוזרת
       if (timeSinceDismiss >= REAPPEAR_DELAY) {
@@ -82,30 +121,48 @@ export const FloatingRegistration = () => {
         // אם טרם עברה דקה, נמתין עד שתעבור דקה מהסגירה
         const remainingTime = REAPPEAR_DELAY - timeSinceDismiss;
         timer = setTimeout(() => {
-          setIsDismissed(false);
-          setDismissedTime(null);
+          // בדיקה נוספת אם הטופס הרגיל מוצג - אם כן, לא נציג את הטופס הצף
+          const mainFormElement = document.getElementById('registration-form');
+          const isMainFormVisibleNow = mainFormElement ? 
+            mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+            mainFormElement.getBoundingClientRect().bottom > 0 : false;
+            
+          if (!isMainFormVisibleNow) {
+            setIsDismissed(false);
+            setDismissedTime(null);
+          }
         }, remainingTime);
       }
     } 
-    // התנאי החדש: מציג את הטופס רק אם המשתמש השתמש בטופס הרגיל וגלל מטה אחרי זה
-    else if (!isDismissed && !isVisible && userInteractedWithMainForm && userScrolledAfterMainForm) {
-      timer = setTimeout(() => {
+    // תנאי חדש: אם הטופס אינו מוצג וטרם נסגר, נציג אותו אחרי חצי דקה
+    else if (!isDismissed && !isVisible && !isMainFormVisible) {
+      const timeSinceLastActivity = currentTime - formTimestampRef.current;
+      
+      if (timeSinceLastActivity >= INITIAL_SHOW_DELAY) {
+        // הצג את הטופס אם עברה מספיק זמן ואם הטופס הרגיל אינו מוצג
         setIsVisible(true);
-      }, INITIAL_SHOW_DELAY);
+      } else {
+        // אם טרם עבר מספיק זמן, המתן עד שיעבור
+        const remainingTime = INITIAL_SHOW_DELAY - timeSinceLastActivity;
+        timer = setTimeout(() => {
+          // בדיקה נוספת אם הטופס הרגיל מוצג - אם כן, לא נציג את הטופס הצף
+          const mainFormElement = document.getElementById('registration-form');
+          const isMainFormVisibleNow = mainFormElement ? 
+            mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+            mainFormElement.getBoundingClientRect().bottom > 0 : false;
+            
+          if (!isMainFormVisibleNow) {
+            setIsVisible(true);
+          }
+        }, remainingTime);
+      }
     }
     
     // ניקוי הטיימר
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isDismissed, isVisible, dismissedTime, userInteractedWithMainForm, userScrolledAfterMainForm]);
-  
-  // מצב הטופס - ללא שדה תעודת זהות
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: ""
-  });
+  }, [isDismissed, isVisible, dismissedTime]);
   
   // עדכון ערכים
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,15 +234,19 @@ export const FloatingRegistration = () => {
     return digitsOnly.length >= 9;
   };
 
-  // עדכון הלוגיקה של השליחה - משתמש באותה לוגיקה כמו קובץ Registration.tsx
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
+  // פונקציה חדשה לשליחת הנתונים למסד הנתונים
+  const submitFormData = async (isAutoSubmit = false) => {
     if (isSubmitting) return;
+    
+    // לא נשלח במצב אוטו אם אין מספיק נתונים
+    if (isAutoSubmit && !formData.name && !formData.email && !formData.phone) {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
-      // בדיקות תקינות 
+      // בדיקות תקינות - במצב של שליחה אוטומטית אנחנו נשלח גם נתונים חלקיים
       const hasValidName = formData.name && formData.name.trim() !== '';
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
@@ -221,17 +282,18 @@ export const FloatingRegistration = () => {
       
       // הכנת האובייקט לשליחה לסופאבייס
       const registrationData = {
-        name: formData.name || '',
-        email: formData.email || '',
-        phone: formData.phone || '',
-        source: 'floating_form', // סימון שמקור ההרשמה הוא מהטופס הצף
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        source: isAutoSubmit ? 'auto_submit_after_scroll' : 'floating_form', // סימון מקור ההרשמה
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded
+          ip_was_loaded: isIpLoaded,
+          is_auto_submit: isAutoSubmit
         }
       };
       
@@ -252,63 +314,69 @@ export const FloatingRegistration = () => {
 
       if (error) throw error;
 
-      // בדיקת תנאים להצגת הודעת הצלחה:
-      // 1. שם + אימייל תקין
-      // 2. או מספר טלפון בן 9 ספרות
-      const nameAndEmailValid = hasValidName && hasValidEmail;
-      const phoneValid = hasValidPhone;
-      const showSuccessMessage = nameAndEmailValid || phoneValid;
-      
-      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
-      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+      // שמירת זמן השליחה האחרון
+      setLastSubmitTime(Date.now());
 
-      if (showSuccessMessage) {
-        // הצגת הודעת הצלחה
-        toast({
-          title: "✅ " + "Success",
-          description: t.successMessage,
-          variant: "success",
-          duration: 5000,
-        });
+      // בדיקת תנאים להצגת הודעת הצלחה (רק בשליחה רגילה, לא אוטומטית):
+      // התנאים זהים לאלו שבטופס הרגיל
+      if (!isAutoSubmit) {
+        // 1. שם + אימייל תקין
+        // 2. או מספר טלפון בן 9 ספרות
+        const nameAndEmailValid = hasValidName && hasValidEmail;
+        const phoneValid = hasValidPhone;
+        const showSuccessMessage = nameAndEmailValid || phoneValid;
         
-        // סגירת הטופס לאחר הרשמה מוצלחת
-        handleDismiss();
-        
-        // ניווט לדף תודה רק אם כל הפרטים מולאו
-        if (allFieldsValid) {
-          // יצירת פרמטרים לשליחה לדף הנחיתה
-          const params = new URLSearchParams({
-            name: formData.name || '',
-            email: formData.email || '',
-            phone: formData.phone || '',
-            source: 'floating_registration_form'
-          }).toString();
+        // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+        const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+
+        if (showSuccessMessage) {
+          // הצגת הודעת הצלחה
+          toast({
+            title: "✅ " + "Success",
+            description: t.successMessage,
+            variant: "success",
+            duration: 5000,
+          });
           
-          // ניווט לאתר HR עם הפרמטרים
-          window.location.href = `https://hr.practicsai.com?${params}`;
+          // סגירת הטופס לאחר הרשמה מוצלחת
+          handleDismiss();
+          
+          // ניווט לדף תודה רק אם כל הפרטים מולאו
+          if (allFieldsValid) {
+            // יצירת פרמטרים לשליחה לדף הנחיתה
+            const params = new URLSearchParams({
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
+              source: 'floating_registration_form'
+            }).toString();
+            
+            // ניווט לאתר HR עם הפרמטרים
+            window.location.href = `https://hr.practicsai.com?${params}`;
+          }
+        } else {
+          // הצגת הודעת שגיאה עם פירוט החסרים
+          let errorDetails = t.validationError + "\n";
+          
+          if (!hasValidName) {
+            errorDetails += "\n- " + t.missingName;
+          }
+          
+          if (!hasValidEmail) {
+            errorDetails += "\n- " + t.missingEmail;
+          }
+          
+          if (!hasValidPhone) {
+            errorDetails += "\n- " + t.missingPhone;
+          }
+          
+          toast({
+            title: "❌ " + "Validation Error",
+            description: errorDetails,
+            variant: "destructive",
+            duration: 7000,
+          });
         }
-      } else {
-        // הצגת הודעת שגיאה עם פירוט החסרים
-        let errorDetails = t.validationError + "\n";
-        
-        if (!hasValidName) {
-          errorDetails += "\n- " + t.missingName;
-        }
-        
-        if (!hasValidEmail) {
-          errorDetails += "\n- " + t.missingEmail;
-        }
-        
-        if (!hasValidPhone) {
-          errorDetails += "\n- " + t.missingPhone;
-        }
-        
-        toast({
-          title: "❌ " + "Validation Error",
-          description: errorDetails,
-          variant: "destructive",
-          duration: 7000,
-        });
       }
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים
@@ -319,14 +387,15 @@ export const FloatingRegistration = () => {
           table_name: 'registration_data',
           details: {
             form_data: {
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
             },
             previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
             has_valid_phone: hasValidPhone,
-            client_timestamp: new Date().toISOString()
+            client_timestamp: new Date().toISOString(),
+            is_auto_submit: isAutoSubmit
           }
         }]);
       } catch (logError) {
@@ -335,15 +404,24 @@ export const FloatingRegistration = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast({
-        title: "❌ " + "Error",
-        description: t.errorMessage,
-        variant: "destructive",
-        duration: 5000,
-      });
+      // הצגת הודעת שגיאה רק אם זו לא שליחה אוטומטית
+      if (!isAutoSubmit) {
+        toast({
+          title: "❌ " + "Error",
+          description: t.errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // עדכון פונקציית השליחה
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await submitFormData(false); // שליחה ידנית
   };
 
   // קבלת ערך ה-direction המתאים לשפה
@@ -354,7 +432,7 @@ export const FloatingRegistration = () => {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 px-3 sm:px-4 py-2 sm:py-3 transform transition-all duration-700 ease-out flex justify-center"
+      className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
       style={{
         direction,
         transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
@@ -412,41 +490,41 @@ export const FloatingRegistration = () => {
         <div 
           className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative"
           style={{ 
-            boxShadow: '0 clamp(0.5rem, 4vw, 1.5rem) clamp(1rem, 6vw, 1.75rem) rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
             maxWidth: '100%',
           }}
         >
           {/* כפתור סגירה */}
           <button 
             onClick={handleDismiss}
-            className="absolute top-2 right-2 p-1.5 sm:p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
+            className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
             aria-label="סגור טופס"
           >
-            <X className="h-3 w-3 sm:h-4 sm:w-4 text-slate-300" />
+            <X className="h-4 w-4 text-slate-300" />
           </button>
           
           {/* כותרת */}
           <div 
-            className="p-4 sm:p-5 md:p-6 pb-3 sm:pb-4" 
+            className="p-6 pb-4" 
             style={{ 
               background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
             }}
           >
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
+            <h2 className="text-2xl font-bold text-white mb-1">
               {t.title}
             </h2>
-            <p className="text-slate-300 opacity-90 text-xs sm:text-sm">
+            <p className="text-slate-300 opacity-90 text-sm">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-4 sm:p-5 md:p-6 pt-3 sm:pt-4">
-            <form onSubmit={onSubmit} className="space-y-3 sm:space-y-4">
+          <div className="p-6 pt-4">
+            <form onSubmit={onSubmit} className="space-y-4">
               {/* שם */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.nameLabel}
                 </label>
                 <input
@@ -455,13 +533,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.emailLabel}
                 </label>
                 <input
@@ -470,13 +548,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -486,26 +564,26 @@ export const FloatingRegistration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* כפתור שליחה */}
-              <div className="pt-2 sm:pt-3">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
+                  className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
                   style={{ 
                     background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 0.125rem 0.625rem rgba(0, 0, 0, 0.25)'
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   <span className="absolute inset-0 w-full h-full glow-effect"></span>
                   {isSubmitting ? (
                     <span className="flex items-center justify-center relative z-10">
-                      <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
