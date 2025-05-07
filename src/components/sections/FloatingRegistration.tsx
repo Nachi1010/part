@@ -190,34 +190,6 @@ export const FloatingRegistration = () => {
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
       
-      // רק אם הנתונים לא תקינים, נציג שגיאה ונעצור את התהליך
-      if (!hasValidName || !hasValidEmail || !hasValidPhone) {
-        // הצגת הודעת שגיאה עם פירוט החסרים
-        let errorDetails = t.validationError + "\n";
-        
-        if (!hasValidName) {
-          errorDetails += "\n- " + t.missingName;
-        }
-        
-        if (!hasValidEmail) {
-          errorDetails += "\n- " + t.missingEmail;
-        }
-        
-        if (!hasValidPhone) {
-          errorDetails += "\n- " + t.missingPhone;
-        }
-        
-        toast({
-          title: "❌ " + "Validation Error",
-          description: errorDetails,
-          variant: "destructive",
-          duration: 7000,
-        });
-        
-        setIsSubmitting(false);
-        return;  // עוצר את התהליך אם יש שגיאות תקינות
-      }
-      
       // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
       let existingUserId = null;
       
@@ -249,9 +221,9 @@ export const FloatingRegistration = () => {
       
       // הכנת האובייקט לשליחה לסופאבייס
       const registrationData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name: formData.name || '',
+        email: formData.email || '',
+        phone: formData.phone || '',
         source: 'floating_form', // סימון שמקור ההרשמה הוא מהטופס הצף
         metadata: {
           browser_info: navigator.userAgent,
@@ -280,27 +252,64 @@ export const FloatingRegistration = () => {
 
       if (error) throw error;
 
-      // הצגת הודעת הצלחה - תמיד כי הגענו לכאן רק אם עברנו את הבדיקות
-      toast({
-        title: "✅ " + "Success",
-        description: t.successMessage,
-        variant: "success",
-        duration: 5000,
-      });
+      // בדיקת תנאים להצגת הודעת הצלחה:
+      // 1. שם + אימייל תקין
+      // 2. או מספר טלפון בן 9 ספרות
+      const nameAndEmailValid = hasValidName && hasValidEmail;
+      const phoneValid = hasValidPhone;
+      const showSuccessMessage = nameAndEmailValid || phoneValid;
       
-      // סגירת הטופס לאחר הרשמה מוצלחת
-      handleDismiss();
-      
-      // יצירת פרמטרים לשליחה לדף הנחיתה
-      const params = new URLSearchParams({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        source: 'floating_registration_form'
-      }).toString();
-      
-      // ניווט לאתר HR עם הפרמטרים
-      window.location.href = `https://hr.practicsai.com?${params}`;
+      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+
+      if (showSuccessMessage) {
+        // הצגת הודעת הצלחה
+        toast({
+          title: "✅ " + "Success",
+          description: t.successMessage,
+          variant: "success",
+          duration: 5000,
+        });
+        
+        // סגירת הטופס לאחר הרשמה מוצלחת
+        handleDismiss();
+        
+        // ניווט לדף תודה רק אם כל הפרטים מולאו
+        if (allFieldsValid) {
+          // יצירת פרמטרים לשליחה לדף הנחיתה
+          const params = new URLSearchParams({
+            name: formData.name || '',
+            email: formData.email || '',
+            phone: formData.phone || '',
+            source: 'floating_registration_form'
+          }).toString();
+          
+          // ניווט לאתר HR עם הפרמטרים
+          window.location.href = `https://hr.practicsai.com?${params}`;
+        }
+      } else {
+        // הצגת הודעת שגיאה עם פירוט החסרים
+        let errorDetails = t.validationError + "\n";
+        
+        if (!hasValidName) {
+          errorDetails += "\n- " + t.missingName;
+        }
+        
+        if (!hasValidEmail) {
+          errorDetails += "\n- " + t.missingEmail;
+        }
+        
+        if (!hasValidPhone) {
+          errorDetails += "\n- " + t.missingPhone;
+        }
+        
+        toast({
+          title: "❌ " + "Validation Error",
+          description: errorDetails,
+          variant: "destructive",
+          duration: 7000,
+        });
+      }
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים
       try {
@@ -310,9 +319,9 @@ export const FloatingRegistration = () => {
           table_name: 'registration_data',
           details: {
             form_data: {
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
             },
             previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
