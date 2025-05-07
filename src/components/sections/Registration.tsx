@@ -303,12 +303,12 @@ export const Registration = () => {
         }}
       ></div>
       
-      {/* שכבת אנימציית גרדיאנט גולשת */}
+      {/* שכבת אנימציית גרדיאנט גולשת - משופרת */}
       <div 
         className="absolute inset-0" 
         style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0) 70%)",
-          opacity: 0.7,
+          background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0) 70%)",
+          opacity: 0.8,
           zIndex: "-2",
           animation: bgAnimationEnabled ? "pulse-gradient 8s infinite alternate" : "none"
         }}
@@ -326,12 +326,12 @@ export const Registration = () => {
         }}
       ></div>
 
-      {/* שכבת אוברליי גרדיאנט נוספת עם אנימציה */}
+      {/* שכבת אוברליי גרדיאנט נוספת עם אנימציה - משופרת */}
       <div 
         className="absolute inset-0" 
         style={{
-          background: "linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.3) 100%)",
-          opacity: 0.6,
+          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.5) 100%)",
+          opacity: bgAnimationEnabled ? 0.8 : 0.7,
           zIndex: "-1",
           animation: bgAnimationEnabled ? "fade-gradient 10s infinite alternate" : "none"
         }}
@@ -342,55 +342,44 @@ export const Registration = () => {
         __html: `
           @keyframes pulse-gradient {
             0% {
-              opacity: 0.5;
+              opacity: 0.6;
               transform: scale(1);
             }
             50% {
-              opacity: 0.7;
+              opacity: 0.8;
               transform: scale(1.05);
             }
             100% {
-              opacity: 0.5;
+              opacity: 0.6;
               transform: scale(1);
             }
           }
           
           @keyframes fade-gradient {
             0% {
-              opacity: 0.5;
+              opacity: 0.6;
               background-position: 0% 50%;
             }
             50% {
-              opacity: 0.7;
+              opacity: 0.8;
               background-position: 100% 50%;
             }
             100% {
-              opacity: 0.5;
+              opacity: 0.6;
               background-position: 0% 50%;
             }
-          }
-          
-          .form-card {
-            transform: translateY(0);
-            transition: transform 0.3s ease-out, box-shadow 0.3s ease;
-          }
-          
-          .form-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 clamp(0.75rem, 6vw, 2rem) clamp(2rem, 10vw, 4rem) rgba(0, 0, 0, 0.5);
           }
         `
       }} />
       
       <div className="w-full max-w-md px-4 sm:px-6">
-        {/* כרטיס הטופס - עם סגנון מקורי עם הגברת בולטות מינימלית */}
+        {/* כרטיס הטופס */}
         <div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 form-card"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
           style={{
-            boxShadow: "0 clamp(0.5rem, 5vw, 1.75rem) clamp(1.5rem, 8vw, 3rem) rgba(0, 0, 0, 0.4)",
+            boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.4)",
             backdropFilter: "blur(5px)",
             backgroundColor: "rgba(255, 255, 255, 0.95)",
-            transition: "all 0.3s ease"
           }}
         >
           {/* כותרת */}
@@ -480,7 +469,7 @@ export const Registration = () => {
                   disabled={isSubmitting}
                   className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70 relative overflow-hidden"
                   style={{ 
-                    background: "linear-gradient(90deg, #2563eb 0%, #1e40af 100%)",
+                    background: "linear-gradient(90deg, #334155 0%, #1e293b 100%)",
                     boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)",
                     transition: "all 0.3s ease"
                   }}
