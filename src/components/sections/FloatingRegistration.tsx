@@ -54,7 +54,7 @@ export const FloatingRegistration = () => {
         setIsDismissed(true); // מונע מהטופס הצף להופיע
       }
       
-      // אם המשתמש כבר השתמש בטופס הרגיל וכעת גולל למקום אחר (הטופס לא נראה)
+      // אם המשתמש כבר ראה את הטופס הרגיל וכעת גולל למקום אחר (הטופס לא נראה)
       if (userInteractedWithMainForm && !isMainFormVisible) {
         // אם המשתמש עדיין לא סימן שגלל אחרי הטופס הרגיל, נסמן כעת
         if (!userScrolledAfterMainForm) {
@@ -64,7 +64,7 @@ export const FloatingRegistration = () => {
         }
         
         // בדיקה אם צריך לשלוח את הנתונים באופן אוטומטי
-        // רק אם יש נתונים כלשהם בטופס וחלפו לפחות 2 דקות מהשליחה האחרונה
+        // רק אם יש נתונים כלשהם בטופס ולא נשלחו ב-2 דקות האחרונות
         if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN &&
             (formData.name || formData.email || formData.phone) &&
             currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
@@ -75,9 +75,8 @@ export const FloatingRegistration = () => {
         }
       }
       
+      // איפוס הטיימר בכל גלילה
       scrollPosition = currentScrollPosition;
-      
-      // איפוס הטיימר בכל גלילה כדי למנוע קריאות מרובות
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         // אין צורך בפעולה נוספת כאן, רק מונע ריבוי עדכונים
@@ -94,7 +93,7 @@ export const FloatingRegistration = () => {
     };
   }, [userInteractedWithMainForm, userScrolledAfterMainForm, formData, lastSubmitTime]);
   
-  // מעקב אחר זמן השהייה בדף ופתיחת הטופס - עם התנאים החדשים
+  // מעקב אחר זמן השהייה בדף ופתיחת הטופס
   useEffect(() => {
     // קבועי זמן
     const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית (30 שניות)
@@ -109,7 +108,7 @@ export const FloatingRegistration = () => {
       mainFormElement.getBoundingClientRect().top < window.innerHeight && 
       mainFormElement.getBoundingClientRect().bottom > 0 : false;
       
-    // אם הטופס כבר נסגר בעבר והאם עבר מספיק זמן להצגה חוזרת
+    // אם הטופס כבר נסגר בעבר (המשתמש לחץ X) והאם עבר מספיק זמן להצגה חוזרת
     if (isDismissed && dismissedTime && !isMainFormVisible) {
       const timeSinceDismiss = currentTime - dismissedTime;
       
@@ -134,12 +133,12 @@ export const FloatingRegistration = () => {
         }, remainingTime);
       }
     } 
-    // תנאי חדש: אם הטופס אינו מוצג וטרם נסגר, נציג אותו אחרי חצי דקה
+    // תצוגה ראשונית או חוזרת של הטופס הצף - אם עבר מספיק זמן מהגלילה
     else if (!isDismissed && !isVisible && !isMainFormVisible) {
       const timeSinceLastActivity = currentTime - formTimestampRef.current;
       
+      // אם עברה חצי דקה מהגלילה האחרונה, נציג את הטופס
       if (timeSinceLastActivity >= INITIAL_SHOW_DELAY) {
-        // הצג את הטופס אם עברה מספיק זמן ואם הטופס הרגיל אינו מוצג
         setIsVisible(true);
       } else {
         // אם טרם עבר מספיק זמן, המתן עד שיעבור
@@ -234,7 +233,7 @@ export const FloatingRegistration = () => {
     return digitsOnly.length >= 9;
   };
 
-  // פונקציה חדשה לשליחת הנתונים למסד הנתונים
+  // פונקציה לשליחת הנתונים למסד הנתונים - תואמת במדויק את הרגיסטריישן המקורי
   const submitFormData = async (isAutoSubmit = false) => {
     if (isSubmitting) return;
     
@@ -246,7 +245,7 @@ export const FloatingRegistration = () => {
     setIsSubmitting(true);
 
     try {
-      // בדיקות תקינות - במצב של שליחה אוטומטית אנחנו נשלח גם נתונים חלקיים
+      // בדיקות תקינות 
       const hasValidName = formData.name && formData.name.trim() !== '';
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
@@ -282,10 +281,12 @@ export const FloatingRegistration = () => {
       
       // הכנת האובייקט לשליחה לסופאבייס
       const registrationData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        source: isAutoSubmit ? 'auto_submit_after_scroll' : 'floating_form', // סימון מקור ההרשמה
+        // לא משתמשים ב-user_id קיים - סופאבייס ייצור מזהה חדש
+        name: formData.name || '',
+        email: formData.email || '',
+        phone: formData.phone || '',
+        source: isAutoSubmit ? 'auto_submit_after_scroll' : 'floating_form',
+        // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
@@ -297,7 +298,7 @@ export const FloatingRegistration = () => {
         }
       };
       
-      // הוספת כתובת IP אם זמינה
+      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
       if (userIp && userIp.trim() !== '') {
         try {
           registrationData['ip_address'] = userIp;
@@ -313,70 +314,74 @@ export const FloatingRegistration = () => {
       const { error } = await supabase.from('registration_data').insert([registrationData]);
 
       if (error) throw error;
-
-      // שמירת זמן השליחה האחרון
+      
+      // שמירת זמן השליחה האחרון (עבור השליחה האוטומטית)
       setLastSubmitTime(Date.now());
 
-      // בדיקת תנאים להצגת הודעת הצלחה (רק בשליחה רגילה, לא אוטומטית):
-      // התנאים זהים לאלו שבטופס הרגיל
-      if (!isAutoSubmit) {
-        // 1. שם + אימייל תקין
-        // 2. או מספר טלפון בן 9 ספרות
-        const nameAndEmailValid = hasValidName && hasValidEmail;
-        const phoneValid = hasValidPhone;
-        const showSuccessMessage = nameAndEmailValid || phoneValid;
-        
-        // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
-        const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+      // שליחה אוטומטית לא מציגה הודעות או מנווטת, אלא רק שומרת נתונים
+      if (isAutoSubmit) {
+        setIsSubmitting(false);
+        return;
+      }
 
-        if (showSuccessMessage) {
-          // הצגת הודעת הצלחה
-          toast({
-            title: "✅ " + "Success",
-            description: t.successMessage,
-            variant: "success",
-            duration: 5000,
-          });
+      // מכאן ואילך, רק שליחה ידנית מהטופס עצמו
+      // בדיקת תנאים להצגת הודעת הצלחה:
+      // 1. שם + אימייל תקין
+      // 2. או מספר טלפון בן 9 ספרות
+      const nameAndEmailValid = hasValidName && hasValidEmail;
+      const phoneValid = hasValidPhone;
+      const showSuccessMessage = nameAndEmailValid || phoneValid;
+      
+      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+
+      if (showSuccessMessage) {
+        // הצגת הודעת הצלחה
+        toast({
+          title: "✅ " + "Success",
+          description: t.successMessage,
+          variant: "success",
+          duration: 5000,
+        });
+        
+        // סגירת הטופס לאחר הרשמה מוצלחת
+        handleDismiss();
+        
+        // ניווט לדף תודה רק אם כל הפרטים מולאו
+        if (allFieldsValid) {
+          // יצירת פרמטרים לשליחה לדף הנחיתה
+          const params = new URLSearchParams({
+            name: formData.name || '',
+            email: formData.email || '',
+            phone: formData.phone || '',
+            source: 'floating_registration_form'
+          }).toString();
           
-          // סגירת הטופס לאחר הרשמה מוצלחת
-          handleDismiss();
-          
-          // ניווט לדף תודה רק אם כל הפרטים מולאו
-          if (allFieldsValid) {
-            // יצירת פרמטרים לשליחה לדף הנחיתה
-            const params = new URLSearchParams({
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
-              source: 'floating_registration_form'
-            }).toString();
-            
-            // ניווט לאתר HR עם הפרמטרים
-            window.location.href = `https://hr.practicsai.com?${params}`;
-          }
-        } else {
-          // הצגת הודעת שגיאה עם פירוט החסרים
-          let errorDetails = t.validationError + "\n";
-          
-          if (!hasValidName) {
-            errorDetails += "\n- " + t.missingName;
-          }
-          
-          if (!hasValidEmail) {
-            errorDetails += "\n- " + t.missingEmail;
-          }
-          
-          if (!hasValidPhone) {
-            errorDetails += "\n- " + t.missingPhone;
-          }
-          
-          toast({
-            title: "❌ " + "Validation Error",
-            description: errorDetails,
-            variant: "destructive",
-            duration: 7000,
-          });
+          // ניווט לאתר HR עם הפרמטרים
+          window.location.href = `https://hr.practicsai.com?${params}`;
         }
+      } else {
+        // הצגת הודעת שגיאה עם פירוט החסרים
+        let errorDetails = t.validationError + "\n";
+        
+        if (!hasValidName) {
+          errorDetails += "\n- " + t.missingName;
+        }
+        
+        if (!hasValidEmail) {
+          errorDetails += "\n- " + t.missingEmail;
+        }
+        
+        if (!hasValidPhone) {
+          errorDetails += "\n- " + t.missingPhone;
+        }
+        
+        toast({
+          title: "❌ " + "Validation Error",
+          description: errorDetails,
+          variant: "destructive",
+          duration: 7000,
+        });
       }
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים
@@ -387,9 +392,9 @@ export const FloatingRegistration = () => {
           table_name: 'registration_data',
           details: {
             form_data: {
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || ''
             },
             previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
@@ -404,15 +409,12 @@ export const FloatingRegistration = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      // הצגת הודעת שגיאה רק אם זו לא שליחה אוטומטית
-      if (!isAutoSubmit) {
-        toast({
-          title: "❌ " + "Error",
-          description: t.errorMessage,
-          variant: "destructive",
-          duration: 5000,
-        });
-      }
+      toast({
+        title: "❌ " + "Error",
+        description: t.errorMessage,
+        variant: "destructive",
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }

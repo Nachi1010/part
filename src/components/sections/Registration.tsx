@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,17 @@ export const Registration = () => {
   const { userIp, isIpLoaded } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [bgAnimationEnabled, setBgAnimationEnabled] = useState(true);
+  
+  // אפקט לטיפול באופטימיזציה - כיבוי האנימציה לאחר זמן מסוים
+  useEffect(() => {
+    // הטיימר יכבה את אנימציית הרקע לאחר 10 שניות כדי לחסוך בביצועים
+    const animationTimer = setTimeout(() => {
+      setBgAnimationEnabled(false);
+    }, 10000);
+    
+    return () => clearTimeout(animationTimer);
+  }, []);
   
   // מצב הטופס
   const [formData, setFormData] = useState({
@@ -279,7 +290,7 @@ export const Registration = () => {
         overflow: "hidden"
       }}
     >
-      {/* רקע דינמי עם אנימציה עדינה */}
+      {/* רקע דינמי עם אנימציה משופרת */}
       <div 
         className="absolute inset-0"
         style={{
@@ -288,35 +299,105 @@ export const Registration = () => {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           filter: "brightness(0.4)",
-          zIndex: "-1"
+          zIndex: "-3"
         }}
       ></div>
       
-      {/* שכבת אוברליי עדינה */}
+      {/* שכבת אנימציית גרדיאנט גולשת */}
       <div 
         className="absolute inset-0" 
         style={{
-          backgroundImage: `linear-gradient(rgba(22, 26, 48, 0.3) 1px, transparent 1px), 
-                            linear-gradient(to right, rgba(22, 26, 48, 0.3) 1px, transparent 1px)`,
+          background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0) 70%)",
+          opacity: 0.7,
+          zIndex: "-2",
+          animation: bgAnimationEnabled ? "pulse-gradient 8s infinite alternate" : "none"
+        }}
+      ></div>
+
+      {/* שכבת אוברליי גריד משופרת */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          backgroundImage: `linear-gradient(rgba(22, 26, 48, 0.4) 1px, transparent 1px), 
+                            linear-gradient(to right, rgba(22, 26, 48, 0.4) 1px, transparent 1px)`,
           backgroundSize: "clamp(20px, 5vw, 50px) clamp(20px, 5vw, 50px)",
-          opacity: 0.4,
+          opacity: 0.5,
           zIndex: "-1"
         }}
       ></div>
+
+      {/* שכבת אוברליי גרדיאנט נוספת עם אנימציה */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: "linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.3) 100%)",
+          opacity: 0.6,
+          zIndex: "-1",
+          animation: bgAnimationEnabled ? "fade-gradient 10s infinite alternate" : "none"
+        }}
+      ></div>
+
+      {/* אנימציות CSS */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse-gradient {
+            0% {
+              opacity: 0.5;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.7;
+              transform: scale(1.05);
+            }
+            100% {
+              opacity: 0.5;
+              transform: scale(1);
+            }
+          }
+          
+          @keyframes fade-gradient {
+            0% {
+              opacity: 0.5;
+              background-position: 0% 50%;
+            }
+            50% {
+              opacity: 0.7;
+              background-position: 100% 50%;
+            }
+            100% {
+              opacity: 0.5;
+              background-position: 0% 50%;
+            }
+          }
+          
+          .form-card {
+            transform: translateY(0);
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease;
+          }
+          
+          .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 clamp(0.75rem, 6vw, 2rem) clamp(2rem, 10vw, 4rem) rgba(0, 0, 0, 0.5);
+          }
+        `
+      }} />
       
       <div className="w-full max-w-md px-4 sm:px-6">
         {/* כרטיס הטופס - עם סגנון מקורי עם הגברת בולטות מינימלית */}
         <div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 form-card"
           style={{
-            boxShadow: "0 clamp(0.5rem, 5vw, 1.75rem) clamp(1.5rem, 8vw, 3rem) rgba(0, 0, 0, 0.4)"
+            boxShadow: "0 clamp(0.5rem, 5vw, 1.75rem) clamp(1.5rem, 8vw, 3rem) rgba(0, 0, 0, 0.4)",
+            backdropFilter: "blur(5px)",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            transition: "all 0.3s ease"
           }}
         >
           {/* כותרת */}
           <div 
             className="p-5 md:p-6 lg:p-8" 
             style={{ 
-              backgroundColor: "#1e293b",
+              background: "linear-gradient(135deg, #1e293b 0%, #111827 100%)",
               borderBottom: "1px solid rgba(255, 255, 255, 0.05)"
             }}
           >
@@ -397,21 +478,22 @@ export const Registration = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
+                  className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70 relative overflow-hidden"
                   style={{ 
-                    backgroundColor: "#334155",
-                    boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)"
+                    background: "linear-gradient(90deg, #2563eb 0%, #1e40af 100%)",
+                    boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)",
+                    transition: "all 0.3s ease"
                   }}
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center justify-center">
+                    <span className="flex items-center justify-center relative z-10">
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       {t.loading}
                     </span>
-                  ) : t.submitButton}
+                  ) : <span className="relative z-10">{t.submitButton}</span>}
                 </button>
               </div>
             </form>
