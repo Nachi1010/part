@@ -184,15 +184,20 @@ export const FloatingRegistration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded,
-          user_scroll_time: true
+          ip_was_loaded: isIpLoaded
         }
       };
       
-      // הוספת כתובת IP אם זמינה - פשוט וישיר
+      // הוספת כתובת IP אם זמינה
       if (userIp && userIp.trim() !== '') {
-        registrationData['ip_address'] = userIp;
-        registrationData.metadata['ip_address'] = userIp;
+        try {
+          registrationData['ip_address'] = userIp;
+          
+          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
+          registrationData.metadata['ip_address'] = userIp;
+        } catch (ipError) {
+          console.warn('Could not add IP address to registration data', ipError);
+        }
       }
       
       // שליחה לסופבייס עם טבלה "registration_data"
@@ -200,35 +205,16 @@ export const FloatingRegistration = () => {
 
       if (error) throw error;
 
-      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים - בדיוק כמו בטופס הרגיל
-      try {
-        await supabase.from('activity_log').insert([{
-          user_id: null, // ה-trigger יטפל בזה
-          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
-          table_name: 'registration_data',
-          details: {
-            form_data: {
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
-            },
-            previous_registration_id: existingUserId,
-            has_valid_email: hasValidEmail,
-            has_valid_phone: hasValidPhone,
-            client_timestamp: new Date().toISOString()
-          }
-        }]);
-      } catch (logError) {
-        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
-        console.warn('Failed to write to activity log:', logError);
-      }
-
-      // בדיקת תנאים להצגת הודעת הצלחה
+      // בדיקת תנאים להצגת הודעת הצלחה:
+      // 1. שם + אימייל תקין
+      // 2. או מספר טלפון בן 9 ספרות
       const nameAndEmailValid = hasValidName && hasValidEmail;
       const phoneValid = hasValidPhone;
       const showSuccessMessage = nameAndEmailValid || phoneValid;
-      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
       
+      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+
       if (showSuccessMessage) {
         // הצגת הודעת הצלחה
         toast({
@@ -241,7 +227,7 @@ export const FloatingRegistration = () => {
         // סגירת הטופס לאחר הרשמה מוצלחת
         handleDismiss();
         
-        // אם כל השדות תקינים, ננווט לדף HR
+        // ניווט לדף תודה רק אם כל הפרטים מולאו
         if (allFieldsValid) {
           // יצירת פרמטרים לשליחה לדף הנחיתה
           const params = new URLSearchParams({
@@ -276,6 +262,29 @@ export const FloatingRegistration = () => {
           variant: "destructive",
           duration: 7000,
         });
+      }
+
+      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים
+      try {
+        await supabase.from('activity_log').insert([{
+          user_id: null, // ה-trigger יטפל בזה
+          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
+          table_name: 'registration_data',
+          details: {
+            form_data: {
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
+            },
+            previous_registration_id: existingUserId,
+            has_valid_email: hasValidEmail,
+            has_valid_phone: hasValidPhone,
+            client_timestamp: new Date().toISOString()
+          }
+        }]);
+      } catch (logError) {
+        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
+        console.warn('Failed to write to activity log:', logError);
       }
     } catch (error) {
       console.error('Registration error:', error);
