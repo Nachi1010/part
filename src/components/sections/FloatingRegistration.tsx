@@ -34,8 +34,8 @@ export const FloatingRegistration = () => {
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
     let lastAutoSubmitTime = 0;
-    const AUTO_SUBMIT_COOLDOWN = 10; // 2 דקות בין שליחות אוטומטיות
-    const SCROLL_THRESHOLD = 100; // הסף המינימלי של גלילה בפיקסלים להפעלת הטריגר
+    const AUTO_SUBMIT_COOLDOWN = 120000; // 2 דקות בין שליחות אוטומטיות
+    const SCROLL_THRESHOLD = 50; // הסף המינימלי של גלילה בפיקסלים להפעלת הטריגר
     
     // אירוע גלילה בדף
     const handleScroll = () => {
@@ -76,29 +76,18 @@ export const FloatingRegistration = () => {
           setUserScrolledAfterMainForm(true);
           // איפוס זמן הקפיצה הצפה לאחר אינטראקציה וגלילה
           formTimestampRef.current = Date.now();
-          
-          // נוסיף טיימר להצגת הטופס הצף לאחר יציאה מהטופס העיקרי
-          setTimeout(() => {
-            // נבדוק שוב שאכן הטופס הראשי לא נראה
-            const mainFormStillVisible = document.getElementById('registration-form')?.getBoundingClientRect().top < window.innerHeight;
-            
-            if (!mainFormStillVisible && !isDismissed) {
-              console.log("מפעיל את הטופס הצף לאחר גלילה מהטופס הראשי + 3 שניות");
-              setIsVisible(true);
-            }
-          }, 3000); // אחרי 3 שניות
         }
+      }
+      
+      // בדיקה אם צריך לשלוח את הנתונים באופן אוטומטי לאחר 2 דקות
+      // רק אם יש נתונים כלשהם בטופס ולא נשלחו ב-2 דקות האחרונות
+      if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN &&
+          (formData.name || formData.email || formData.phone) &&
+          currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
         
-        // בדיקה אם צריך לשלוח את הנתונים באופן אוטומטי
-        // רק אם יש נתונים כלשהם בטופס ולא נשלחו ב-2 דקות האחרונות
-        if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN &&
-            (formData.name || formData.email || formData.phone) &&
-            currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
-          
-          // שולח את הנתונים באופן אוטומטי לאחר גלילה
-          submitFormData(true);
-          lastAutoSubmitTime = currentTime;
-        }
+        // שולח את הנתונים באופן אוטומטי
+        submitFormData(true);
+        lastAutoSubmitTime = currentTime;
       }
       
       // איפוס הטיימר בכל גלילה
@@ -121,9 +110,10 @@ export const FloatingRegistration = () => {
   
   // מעקב אחר זמן השהייה בדף ופתיחת הטופס
   useEffect(() => {
-    // קבועי זמן
+    // קבועי זמן - מעודכנים לפי דרישת המשימה
     const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית (30 שניות)
     const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת (60 שניות)
+    const AFTER_MAIN_FORM_DELAY = 30000; // חצי דקה אחרי גלילה מהטופס הראשי
     
     let timer: ReturnType<typeof setTimeout>;
     const currentTime = Date.now();
@@ -139,22 +129,28 @@ export const FloatingRegistration = () => {
       isVisible, 
       hasScrolled, 
       isMainFormVisible,
+      userInteractedWithMainForm,
+      userScrolledAfterMainForm,
       dismissedTime: dismissedTime ? new Date(dismissedTime).toLocaleTimeString() : "אין"
     });
     
-    // תנאי 1: אם המשתמש סגר את הטופס באופן יזום, נציג אותו שוב לאחר דקה
+    // חוק 1: אם המשתמש סגר את הטופס באופן יזום, נציג אותו שוב לאחר דקה
     if (isDismissed && dismissedTime && !isMainFormVisible) {
       const timeSinceDismiss = currentTime - dismissedTime;
       
       if (timeSinceDismiss >= REAPPEAR_DELAY) {
+        // אם עבר מספיק זמן מאז הסגירה, נציג שוב
         setIsDismissed(false);
         setDismissedTime(null);
-        // הצגה מפורשת של הטופס לאחר הזמן שחלף
         setIsVisible(true);
-        console.log("מציג טופס צף שוב לאחר סגירה יזומה וזמן המתנה");
+        console.log("מציג טופס צף שוב לאחר סגירה יזומה וזמן המתנה של דקה");
       } else {
+        // אם לא עבר מספיק זמן, נקבע טיימר להצגה בזמן המתאים
         const remainingTime = REAPPEAR_DELAY - timeSinceDismiss;
+        console.log(`יציג טופס בעוד ${Math.floor(remainingTime/1000)} שניות`);
+        
         timer = setTimeout(() => {
+          // נבדוק שוב שהטופס הראשי לא מוצג כרגע
           const mainFormElement = document.getElementById('registration-form');
           const isMainFormVisibleNow = mainFormElement ? 
             mainFormElement.getBoundingClientRect().top < window.innerHeight && 
@@ -163,17 +159,17 @@ export const FloatingRegistration = () => {
           if (!isMainFormVisibleNow) {
             setIsDismissed(false);
             setDismissedTime(null);
-            // הצגה מפורשת של הטופס
             setIsVisible(true);
             console.log("מציג טופס צף שוב לאחר סגירה יזומה וסיום זמן המתנה");
           }
         }, remainingTime);
       }
     }
-    // תנאי 2: הצגה ראשונית של הטופס לאחר גלילה בדף
-    else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible) {
-      // נציג את הטופס לאחר INITIAL_SHOW_DELAY מהגלילה הראשונית
+    // חוק 2: הצגה ראשונית של הטופס לאחר גלילה בדף וחצי דקה
+    else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible && !userInteractedWithMainForm) {
+      // נציג את הטופס לאחר חצי דקה מהגלילה הראשונית
       console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מגלילה ראשונית`);
+      
       timer = setTimeout(() => {
         // בדיקה נוספת שהטופס הראשי לא נראה כעת
         const mainFormElement = document.getElementById('registration-form');
@@ -181,30 +177,47 @@ export const FloatingRegistration = () => {
           mainFormElement.getBoundingClientRect().top < window.innerHeight && 
           mainFormElement.getBoundingClientRect().bottom > 0 : false;
         
-        if (!isMainFormVisibleNow) {
+        if (!isMainFormVisibleNow && !userInteractedWithMainForm) {
           setIsVisible(true);
-          console.log("מציג טופס צף לאחר גלילה ראשונית והשהייה");
+          console.log("מציג טופס צף לאחר גלילה ראשונית והשהייה של חצי דקה");
         } else {
           console.log("דילוג על הצגת טופס צף כי הטופס העיקרי מוצג כעת");
         }
       }, INITIAL_SHOW_DELAY);
     }
-    // תנאי 3: הצגה מיידית של הטופס אם יש גלילה וכל שאר התנאים מתקיימים
+    // חוק 3: לאחר שהמשתמש ראה את הטופס הראשי וגלל ממנו, נציג את הטופס הצף לאחר חצי דקה
     else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible && userScrolledAfterMainForm) {
       // נבדוק את הזמן שחלף מהביקור בטופס הראשי
       const timeSinceMainFormInteraction = currentTime - formTimestampRef.current;
       
-      // אם חלפו לפחות 10 שניות מאז אינטראקציה עם הטופס המרכזי, נציג את הטופס הצף
-      if (timeSinceMainFormInteraction > 10000) {
-        console.log("מציג טופס צף מיידית לאחר 10 שניות מאינטראקציה עם הטופס הראשי");
+      if (timeSinceMainFormInteraction > AFTER_MAIN_FORM_DELAY) {
+        // אם חלפה כבר חצי דקה, נציג מיד
+        console.log("מציג טופס צף מיידית לאחר חצי דקה מגלילה מהטופס הראשי");
         setIsVisible(true);
+      } else {
+        // אם לא עברה חצי דקה, נקבע טיימר
+        const remainingTime = AFTER_MAIN_FORM_DELAY - timeSinceMainFormInteraction;
+        console.log(`יציג טופס צף בעוד ${Math.floor(remainingTime/1000)} שניות מגלילה מהטופס הראשי`);
+        
+        timer = setTimeout(() => {
+          // בדיקה נוספת שהטופס הראשי לא נראה כעת
+          const mainFormElement = document.getElementById('registration-form');
+          const isMainFormVisibleNow = mainFormElement ? 
+            mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+            mainFormElement.getBoundingClientRect().bottom > 0 : false;
+          
+          if (!isMainFormVisibleNow) {
+            setIsVisible(true);
+            console.log("מציג טופס צף לאחר חצי דקה מגלילה מהטופס הראשי");
+          }
+        }, remainingTime);
       }
     }
     
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isDismissed, isVisible, dismissedTime, hasScrolled, userScrolledAfterMainForm, formTimestampRef]);
+  }, [isDismissed, isVisible, dismissedTime, hasScrolled, userScrolledAfterMainForm, formTimestampRef, userInteractedWithMainForm]);
   
   // עדכון ערכים
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -299,6 +312,7 @@ export const FloatingRegistration = () => {
           
         if (existingUserByEmail && existingUserByEmail.length > 0) {
           existingUserId = existingUserByEmail[0].user_id;
+          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
         }
       }
       
@@ -312,11 +326,12 @@ export const FloatingRegistration = () => {
           
         if (existingUserByPhone && existingUserByPhone.length > 0) {
           existingUserId = existingUserByPhone[0].user_id;
+          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
         }
       }
       
       // הכנת האובייקט לשליחה לסופאבייס
-      const registrationData: any = {
+      const registrationData = {
         // נתונים מהטופס הראשי
         name: mainFormData.name || '',
         email: mainFormData.email || '',
@@ -335,33 +350,38 @@ export const FloatingRegistration = () => {
         }
       };
       
-      // הוספת כתובת IP ישירות לאובייקט
+      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
       if (userIp && userIp.trim() !== '') {
-        // הוספה כשדה עצמאי
-        registrationData.ip_address = userIp.trim();
-        
-        // הוספה גם במטא-דאטה לגיבוי
-        registrationData.metadata.ip_address = userIp.trim();
-        
-        console.log("IP נוסף לנתוני הרישום:", userIp.trim());
-      } else {
-        console.warn("לא נמצאה כתובת IP לשליחה");
-        
-        // הוספת שדה ריק במקרה שהשדה נדרש בסכמה
-        registrationData.ip_address = '';
+        try {
+          registrationData['ip_address'] = userIp;
+          
+          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
+          registrationData.metadata['ip_address'] = userIp;
+        } catch (ipError) {
+          console.warn('Could not add IP address to registration data', ipError);
+        }
       }
       
       console.log("שולח נתוני רישום מהטופס הראשי:", JSON.stringify(registrationData));
       
       // שליחה לסופבייס עם טבלה "registration_data"
-      const { error, data } = await supabase.from('registration_data').insert([registrationData]).select();
+      const { error } = await supabase.from('registration_data').insert([registrationData]);
 
       if (error) {
         console.error("שגיאת סופאבייס:", error);
-        throw error;
+        
+        // הצגת שגיאה למשתמש במקרה של בעיה בשליחה
+        toast({
+          title: "❌ " + "Error",
+          description: t.errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+        
+        return; // עוצר את המשך הביצוע במקרה של שגיאה
       }
       
-      console.log("רישום נתוני טופס ראשי הושלם בהצלחה:", data);
+      console.log("רישום הושלם בהצלחה:");
       
       // שמירת זמן השליחה האחרון (עבור השליחה האוטומטית)
       setLastSubmitTime(Date.now());
@@ -481,6 +501,7 @@ export const FloatingRegistration = () => {
           
         if (existingUserByEmail && existingUserByEmail.length > 0) {
           existingUserId = existingUserByEmail[0].user_id;
+          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
         }
       }
       
@@ -494,12 +515,13 @@ export const FloatingRegistration = () => {
           
         if (existingUserByPhone && existingUserByPhone.length > 0) {
           existingUserId = existingUserByPhone[0].user_id;
+          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
         }
       }
       
-      // הכנת האובייקט לשליחה לסופאבייס
-      const registrationData: any = {
-        // לא משתמשים ב-user_id קיים - סופאבייס ייצור מזהה חדש
+      // הכנת האובייקט לשליחה לסופאבייס - בדיוק כמו ברגיסטריישן המקורי
+      const registrationData = {
+        // לא משתמשים ב-user_id קיים כלל - סופאבייס ייצור מזהה חדש
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
@@ -511,38 +533,43 @@ export const FloatingRegistration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded,
-          is_auto_submit: isAutoSubmit
+          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
         }
       };
       
-      // הוספת כתובת IP ישירות לאובייקט
+      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
+      // אם השרת אינו תומך בשדה, הוא יישמט באופן אוטומטי
       if (userIp && userIp.trim() !== '') {
-        // הוספה כשדה עצמאי
-        registrationData.ip_address = userIp.trim();
-        
-        // הוספה גם במטא-דאטה לגיבוי
-        registrationData.metadata.ip_address = userIp.trim();
-        
-        console.log("IP נוסף לנתוני הרישום:", userIp.trim());
-      } else {
-        console.warn("לא נמצאה כתובת IP לשליחה");
-        
-        // הוספת שדה ריק במקרה שהשדה נדרש בסכמה
-        registrationData.ip_address = '';
+        try {
+          registrationData['ip_address'] = userIp;
+          
+          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
+          registrationData.metadata['ip_address'] = userIp;
+        } catch (ipError) {
+          console.warn('Could not add IP address to registration data', ipError);
+        }
       }
       
       console.log("שולח נתוני רישום:", JSON.stringify(registrationData));
       
       // שליחה לסופבייס עם טבלה "registration_data"
-      const { error, data } = await supabase.from('registration_data').insert([registrationData]).select();
+      const { error } = await supabase.from('registration_data').insert([registrationData]);
 
       if (error) {
         console.error("שגיאת סופאבייס:", error);
-        throw error;
+        
+        // הצגת שגיאה למשתמש במקרה של בעיה בשליחה
+        toast({
+          title: "❌ " + "Error",
+          description: t.errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+        
+        return; // עוצר את המשך הביצוע במקרה של שגיאה
       }
       
-      console.log("רישום הושלם בהצלחה:", data);
+      console.log("רישום הושלם בהצלחה:");
       
       // שמירת זמן השליחה האחרון (עבור השליחה האוטומטית)
       setLastSubmitTime(Date.now());

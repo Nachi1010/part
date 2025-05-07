@@ -14,17 +14,6 @@ export const Registration = () => {
   const { userIp, isIpLoaded } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const [bgAnimationEnabled, setBgAnimationEnabled] = useState(true);
-  
-  // אפקט לטיפול באופטימיזציה - כיבוי האנימציה לאחר זמן מסוים
-  useEffect(() => {
-    // הטיימר יכבה את אנימציית הרקע לאחר 10 שניות כדי לחסוך בביצועים
-    const animationTimer = setTimeout(() => {
-      setBgAnimationEnabled(false);
-    }, 10000);
-    
-    return () => clearTimeout(animationTimer);
-  }, []);
   
   // מצב הטופס
   const [formData, setFormData] = useState({
@@ -290,7 +279,7 @@ export const Registration = () => {
         overflow: "hidden"
       }}
     >
-      {/* רקע דינמי עם אנימציה משופרת */}
+      {/* רקע סקסי עם אפקט גריד משופר */}
       <div 
         className="absolute inset-0"
         style={{
@@ -298,76 +287,62 @@ export const Registration = () => {
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          filter: "brightness(0.4)",
+          filter: "brightness(0.3)",
           zIndex: "-3"
         }}
       ></div>
       
-      {/* שכבת אנימציית גרדיאנט גולשת - משופרת */}
+      {/* שכבת גריד בסיסית */}
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0 bg-grid-pattern"
         style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0) 70%)",
-          opacity: 0.8,
-          zIndex: "-2",
-          animation: bgAnimationEnabled ? "pulse-gradient 8s infinite alternate" : "none"
+          backgroundImage: 
+            `linear-gradient(rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw),
+             linear-gradient(to right, rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw)`,
+          backgroundSize: "1vw 1vw",
+          backgroundPosition: "center",
+          backgroundRepeat: "repeat",
+          opacity: 0.4,
+          zIndex: "-2"
         }}
       ></div>
-
-      {/* שכבת אוברליי גריד משופרת */}
+      
+      {/* שכבת אוברליי בסגנון Features - יוצרת אפקט סקסי */}
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0"
         style={{
-          backgroundImage: `linear-gradient(rgba(22, 26, 48, 0.4) 1px, transparent 1px), 
-                            linear-gradient(to right, rgba(22, 26, 48, 0.4) 1px, transparent 1px)`,
-          backgroundSize: "clamp(20px, 5vw, 50px) clamp(20px, 5vw, 50px)",
-          opacity: 0.5,
+          background: "linear-gradient(135deg, rgba(10, 17, 40, 0.8) 0%, rgba(0, 2, 5, 0.9) 100%)",
           zIndex: "-1"
         }}
       ></div>
-
-      {/* שכבת אוברליי גרדיאנט נוספת עם אנימציה - משופרת */}
+      
+      {/* שכבת הבהוב עדינה */}
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0"
         style={{
-          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.5) 100%)",
-          opacity: bgAnimationEnabled ? 0.8 : 0.7,
+          background: "radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 60%)",
+          opacity: 0.7,
           zIndex: "-1",
-          animation: bgAnimationEnabled ? "fade-gradient 10s infinite alternate" : "none"
+          animation: "pulse-subtle 8s infinite alternate"
         }}
       ></div>
-
+      
       {/* אנימציות CSS */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes pulse-gradient {
-            0% {
-              opacity: 0.6;
-              transform: scale(1);
-            }
-            50% {
-              opacity: 0.8;
-              transform: scale(1.05);
-            }
-            100% {
-              opacity: 0.6;
-              transform: scale(1);
-            }
+          @keyframes pulse-subtle {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+            100% { opacity: 0.3; transform: scale(1); }
           }
           
-          @keyframes fade-gradient {
-            0% {
-              opacity: 0.6;
-              background-position: 0% 50%;
-            }
-            50% {
-              opacity: 0.8;
-              background-position: 100% 50%;
-            }
-            100% {
-              opacity: 0.6;
-              background-position: 0% 50%;
-            }
+          .bg-grid-pattern {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw),
+              linear-gradient(to right, rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw);
+            background-size: 1vw 1vw;
+            background-position: center;
+            background-repeat: repeat;
           }
         `
       }} />
@@ -375,35 +350,47 @@ export const Registration = () => {
       <div className="w-full max-w-md px-4 sm:px-6">
         {/* כרטיס הטופס */}
         <div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          className="rounded-lg shadow-xl overflow-hidden border border-gray-600"
           style={{
-            boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.4)",
+            boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.4), 0 0 1rem rgba(59, 130, 246, 0.2)",
             backdropFilter: "blur(5px)",
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backgroundColor: "rgba(15, 23, 42, 0.85)",
+            animation: "card-appear 0.8s ease-out forwards",
+            borderColor: "rgba(59, 130, 246, 0.2)"
           }}
         >
+          {/* אנימציית כניסה לכרטיס */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes card-appear {
+                0% { opacity: 0; transform: translateY(20px); }
+                100% { opacity: 1; transform: translateY(0); }
+              }
+            `
+          }} />
+          
           {/* כותרת */}
           <div 
             className="p-5 md:p-6 lg:p-8" 
             style={{ 
-              background: "linear-gradient(135deg, #1e293b 0%, #111827 100%)",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.05)"
+              background: "linear-gradient(135deg, #134e99 0%, #0a2b60 100%)",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.1)"
             }}
           >
             <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
               {t.title}
             </h2>
-            <p className="text-white opacity-80 text-sm sm:text-base">
+            <p className="text-white opacity-90 text-sm sm:text-base">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-5 md:p-6 lg:p-8">
+          <div className="p-5 md:p-6 lg:p-8 text-white">
             <form onSubmit={onSubmit} className="space-y-4 md:space-y-5">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-200">
                   {t.nameLabel}
                 </label>
                 <input
@@ -412,13 +399,13 @@ export const Registration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-600 dark:border-gray-500 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* מספר זהות */}
               <div>
-                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-200">
                   {t.idLabel}
                 </label>
                 <input
@@ -427,13 +414,13 @@ export const Registration = () => {
                   placeholder={t.idPlaceholder}
                   value={formData.id}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-600 dark:border-gray-500 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-200">
                   {t.emailLabel}
                 </label>
                 <input
@@ -442,13 +429,13 @@ export const Registration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-600 dark:border-gray-500 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-200">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -458,7 +445,7 @@ export const Registration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-600 dark:border-gray-500 bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -469,7 +456,7 @@ export const Registration = () => {
                   disabled={isSubmitting}
                   className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70 relative overflow-hidden"
                   style={{ 
-                    background: "linear-gradient(90deg, #334155 0%, #1e293b 100%)",
+                    background: "linear-gradient(90deg, #2563eb 0%, #1e40af 100%)",
                     boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)",
                     transition: "all 0.3s ease"
                   }}
