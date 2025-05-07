@@ -14,11 +14,58 @@ export const FloatingRegistration = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [dismissedTime, setDismissedTime] = useState<number | null>(null);
+  const [userInteractedWithMainForm, setUserInteractedWithMainForm] = useState(false);
+  const [userScrolledAfterMainForm, setUserScrolledAfterMainForm] = useState(false);
   
-  // מעקב אחר זמן השהייה בדף ופתיחת הטופס
+  // מעקב אחר טופס הרגיל וגלילה
+  useEffect(() => {
+    // מאזין לאירועים של טופס רגיל
+    const mainFormElement = document.getElementById('registration-form');
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    let scrollPosition = window.scrollY;
+    
+    // בדיקה אם המשתמש התקדם מעבר לטופס הרגיל (גלל מטה)
+    const handleScroll = () => {
+      const currentScrollPosition = window.scrollY;
+      
+      // בודק אם המשתמש השתמש בטופס הרגיל
+      if (mainFormElement) {
+        const formRect = mainFormElement.getBoundingClientRect();
+        
+        // אם הטופס נראה בחלון הדפדפן והמשתמש כבר השתמש בו
+        if (formRect.top < window.innerHeight && formRect.bottom > 0) {
+          setUserInteractedWithMainForm(true);
+        }
+        
+        // אם המשתמש גלל מטה אחרי שהשתמש בטופס
+        if (userInteractedWithMainForm && currentScrollPosition > scrollPosition && formRect.bottom < 0) {
+          setUserScrolledAfterMainForm(true);
+        }
+      }
+      
+      scrollPosition = currentScrollPosition;
+      
+      // איפוס הטיימר בכל גלילה כדי למנוע קריאות מרובות
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        // אין צורך בפעולה נוספת כאן, רק מונע ריבוי עדכונים
+      }, 100);
+    };
+    
+    // הוספת האזנה לאירועי גלילה
+    window.addEventListener('scroll', handleScroll);
+    
+    // ניקוי האזנה בעת פירוק הקומפוננטה
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [userInteractedWithMainForm]);
+  
+  // מעקב אחר זמן השהייה בדף ופתיחת הטופס - עם התנאים החדשים
   useEffect(() => {
     // קבועי זמן
-    const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית
+    const INITIAL_SHOW_DELAY = 60000; // דקה להצגה ראשונית
     const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת
     
     let timer: ReturnType<typeof setTimeout>;
@@ -40,8 +87,8 @@ export const FloatingRegistration = () => {
         }, remainingTime);
       }
     } 
-    // אם הטופס לא נסגר בעבר ולא מוצג כרגע, נציג אותו אחרי חצי דקה
-    else if (!isDismissed && !isVisible) {
+    // התנאי החדש: מציג את הטופס רק אם המשתמש השתמש בטופס הרגיל וגלל מטה אחרי זה
+    else if (!isDismissed && !isVisible && userInteractedWithMainForm && userScrolledAfterMainForm) {
       timer = setTimeout(() => {
         setIsVisible(true);
       }, INITIAL_SHOW_DELAY);
@@ -51,7 +98,7 @@ export const FloatingRegistration = () => {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isDismissed, isVisible, dismissedTime]);
+  }, [isDismissed, isVisible, dismissedTime, userInteractedWithMainForm, userScrolledAfterMainForm]);
   
   // מצב הטופס - ללא שדה תעודת זהות
   const [formData, setFormData] = useState({
@@ -143,6 +190,34 @@ export const FloatingRegistration = () => {
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
       
+      // רק אם הנתונים לא תקינים, נציג שגיאה ונעצור את התהליך
+      if (!hasValidName || !hasValidEmail || !hasValidPhone) {
+        // הצגת הודעת שגיאה עם פירוט החסרים
+        let errorDetails = t.validationError + "\n";
+        
+        if (!hasValidName) {
+          errorDetails += "\n- " + t.missingName;
+        }
+        
+        if (!hasValidEmail) {
+          errorDetails += "\n- " + t.missingEmail;
+        }
+        
+        if (!hasValidPhone) {
+          errorDetails += "\n- " + t.missingPhone;
+        }
+        
+        toast({
+          title: "❌ " + "Validation Error",
+          description: errorDetails,
+          variant: "destructive",
+          duration: 7000,
+        });
+        
+        setIsSubmitting(false);
+        return;  // עוצר את התהליך אם יש שגיאות תקינות
+      }
+      
       // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
       let existingUserId = null;
       
@@ -174,9 +249,9 @@ export const FloatingRegistration = () => {
       
       // הכנת האובייקט לשליחה לסופאבייס
       const registrationData = {
-        name: formData.name || '',
-        email: formData.email || '',
-        phone: formData.phone || '',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
         source: 'floating_form', // סימון שמקור ההרשמה הוא מהטופס הצף
         metadata: {
           browser_info: navigator.userAgent,
@@ -205,64 +280,27 @@ export const FloatingRegistration = () => {
 
       if (error) throw error;
 
-      // בדיקת תנאים להצגת הודעת הצלחה:
-      // 1. שם + אימייל תקין
-      // 2. או מספר טלפון בן 9 ספרות
-      const nameAndEmailValid = hasValidName && hasValidEmail;
-      const phoneValid = hasValidPhone;
-      const showSuccessMessage = nameAndEmailValid || phoneValid;
+      // הצגת הודעת הצלחה - תמיד כי הגענו לכאן רק אם עברנו את הבדיקות
+      toast({
+        title: "✅ " + "Success",
+        description: t.successMessage,
+        variant: "success",
+        duration: 5000,
+      });
       
-      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
-      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
-
-      if (showSuccessMessage) {
-        // הצגת הודעת הצלחה
-        toast({
-          title: "✅ " + "Success",
-          description: t.successMessage,
-          variant: "success",
-          duration: 5000,
-        });
-        
-        // סגירת הטופס לאחר הרשמה מוצלחת
-        handleDismiss();
-        
-        // ניווט לדף תודה רק אם כל הפרטים מולאו
-        if (allFieldsValid) {
-          // יצירת פרמטרים לשליחה לדף הנחיתה
-          const params = new URLSearchParams({
-            name: formData.name || '',
-            email: formData.email || '',
-            phone: formData.phone || '',
-            source: 'floating_registration_form'
-          }).toString();
-          
-          // ניווט לאתר HR עם הפרמטרים
-          window.location.href = `https://hr.practicsai.com?${params}`;
-        }
-      } else {
-        // הצגת הודעת שגיאה עם פירוט החסרים
-        let errorDetails = t.validationError + "\n";
-        
-        if (!hasValidName) {
-          errorDetails += "\n- " + t.missingName;
-        }
-        
-        if (!hasValidEmail) {
-          errorDetails += "\n- " + t.missingEmail;
-        }
-        
-        if (!hasValidPhone) {
-          errorDetails += "\n- " + t.missingPhone;
-        }
-        
-        toast({
-          title: "❌ " + "Validation Error",
-          description: errorDetails,
-          variant: "destructive",
-          duration: 7000,
-        });
-      }
+      // סגירת הטופס לאחר הרשמה מוצלחת
+      handleDismiss();
+      
+      // יצירת פרמטרים לשליחה לדף הנחיתה
+      const params = new URLSearchParams({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        source: 'floating_registration_form'
+      }).toString();
+      
+      // ניווט לאתר HR עם הפרמטרים
+      window.location.href = `https://hr.practicsai.com?${params}`;
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים
       try {
@@ -272,9 +310,9 @@ export const FloatingRegistration = () => {
           table_name: 'registration_data',
           details: {
             form_data: {
-              name: formData.name || '',
-              email: formData.email || '',
-              phone: formData.phone || '',
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
             },
             previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
@@ -307,7 +345,7 @@ export const FloatingRegistration = () => {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
+      className="fixed bottom-0 left-0 right-0 z-50 px-3 sm:px-4 py-2 sm:py-3 transform transition-all duration-700 ease-out flex justify-center"
       style={{
         direction,
         transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
@@ -361,45 +399,45 @@ export const FloatingRegistration = () => {
       }} />
 
       <div className="w-full max-w-lg mx-auto">
-        {/* כרטיס הטופס - עם עיצוב יוקרתי יותר */}
+        {/* כרטיס הטופס */}
         <div 
-          className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-2xl overflow-hidden border border-slate-700 relative"
+          className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative"
           style={{ 
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
+            boxShadow: '0 clamp(0.5rem, 4vw, 1.5rem) clamp(1rem, 6vw, 1.75rem) rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
             maxWidth: '100%',
           }}
         >
-          {/* כפתור סגירה - ממוקם בתוך הכרטיס */}
+          {/* כפתור סגירה */}
           <button 
             onClick={handleDismiss}
-            className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
+            className="absolute top-2 right-2 p-1.5 sm:p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
             aria-label="סגור טופס"
           >
-            <X className="h-4 w-4 text-slate-300" />
+            <X className="h-3 w-3 sm:h-4 sm:w-4 text-slate-300" />
           </button>
           
           {/* כותרת */}
           <div 
-            className="p-6 pb-4" 
+            className="p-4 sm:p-5 md:p-6 pb-3 sm:pb-4" 
             style={{ 
               background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
             }}
           >
-            <h2 className="text-2xl font-bold text-white mb-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
               {t.title}
             </h2>
-            <p className="text-slate-300 opacity-90 text-sm">
+            <p className="text-slate-300 opacity-90 text-xs sm:text-sm">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-6 pt-4">
-            <form onSubmit={onSubmit} className="space-y-4">
+          <div className="p-4 sm:p-5 md:p-6 pt-3 sm:pt-4">
+            <form onSubmit={onSubmit} className="space-y-3 sm:space-y-4">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
                   {t.nameLabel}
                 </label>
                 <input
@@ -408,13 +446,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
                   {t.emailLabel}
                 </label>
                 <input
@@ -423,13 +461,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
+                <label className="block text-xs sm:text-sm font-medium mb-1 text-slate-200">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -439,26 +477,26 @@ export const FloatingRegistration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
-              {/* כפתור שליחה - עם עיצוב יוקרתי יותר */}
-              <div className="pt-2">
+              {/* כפתור שליחה */}
+              <div className="pt-2 sm:pt-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
+                  className="w-full py-2 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
                   style={{ 
                     background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
+                    boxShadow: '0 0.125rem 0.625rem rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   <span className="absolute inset-0 w-full h-full glow-effect"></span>
                   {isSubmitting ? (
                     <span className="flex items-center justify-center relative z-10">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

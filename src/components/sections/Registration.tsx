@@ -272,50 +272,68 @@ export const Registration = () => {
   return (
     <div 
       id="registration-form"
-      className="py-20 min-h-screen flex items-center justify-center"
+      className="py-8 md:py-16 lg:py-20 min-h-screen flex items-center justify-center"
       style={{ 
         direction,
         position: "relative",
         overflow: "hidden"
       }}
     >
-      {/* רקע קבוע */}
+      {/* רקע דינמי עם אנימציה עדינה */}
       <div 
-        className="fixed inset-0" 
+        className="absolute inset-0"
         style={{
           backgroundImage: `url('${getImagePath("/images/D.avif")}'), url('${getImagePath("/images/D.webp")}'), url('${getImagePath("/images/D.jpeg")}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          filter: "brightness(0.4)", 
+          filter: "brightness(0.4)",
           zIndex: "-1"
         }}
       ></div>
       
-      <div className="w-full max-w-md px-6">
-        {/* כרטיס הטופס - עם סגנון סטטי לחלוטין */}
+      {/* שכבת אוברליי עדינה */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          backgroundImage: `linear-gradient(rgba(22, 26, 48, 0.3) 1px, transparent 1px), 
+                            linear-gradient(to right, rgba(22, 26, 48, 0.3) 1px, transparent 1px)`,
+          backgroundSize: "clamp(20px, 5vw, 50px) clamp(20px, 5vw, 50px)",
+          opacity: 0.4,
+          zIndex: "-1"
+        }}
+      ></div>
+      
+      <div className="w-full max-w-md px-4 sm:px-6">
+        {/* כרטיס הטופס - עם סגנון מקורי עם הגברת בולטות מינימלית */}
         <div 
           className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          style={{
+            boxShadow: "0 clamp(0.5rem, 5vw, 1.75rem) clamp(1.5rem, 8vw, 3rem) rgba(0, 0, 0, 0.4)"
+          }}
         >
           {/* כותרת */}
           <div 
-            className="p-8" 
-            style={{ backgroundColor: "#1e293b" }}
+            className="p-5 md:p-6 lg:p-8" 
+            style={{ 
+              backgroundColor: "#1e293b",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.05)"
+            }}
           >
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
               {t.title}
             </h2>
-            <p className="text-white opacity-80">
+            <p className="text-white opacity-80 text-sm sm:text-base">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-8">
-            <form onSubmit={onSubmit} className="space-y-5">
+          <div className="p-5 md:p-6 lg:p-8">
+            <form onSubmit={onSubmit} className="space-y-4 md:space-y-5">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
                   {t.nameLabel}
                 </label>
                 <input
@@ -324,13 +342,13 @@ export const Registration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* מספר זהות */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
                   {t.idLabel}
                 </label>
                 <input
@@ -339,13 +357,13 @@ export const Registration = () => {
                   placeholder={t.idPlaceholder}
                   value={formData.id}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
                   {t.emailLabel}
                 </label>
                 <input
@@ -354,13 +372,13 @@ export const Registration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-700 dark:text-gray-300">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -370,18 +388,19 @@ export const Registration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
-              {/* כפתור שליחה - עם מרווח מהשורה האחרונה */}
-              <div className="pt-5">
+              {/* כפתור שליחה */}
+              <div className="pt-3 sm:pt-4 md:pt-5">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
+                  className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
                   style={{ 
-                    backgroundColor: "#334155"
+                    backgroundColor: "#334155",
+                    boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)"
                   }}
                 >
                   {isSubmitting ? (
