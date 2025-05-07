@@ -66,12 +66,35 @@
     animation: move-left 6s ease-in-out infinite;
 }
 
-/* Feature Title Responsive */
+/* Feature Title Responsive - שיפור משמעותי בבליטות הכותרות */
 .feature-title {
     transition: all 0.3s ease;
-    text-shadow: 0.15vw 0.15vw 0.4vw rgba(0, 120, 255, 0.6),
-                 0.3vw 0.3vw 0.7vw rgba(0, 0, 0, 0.5);
+    text-shadow: 
+        /* שכבה ראשונה - צל פנימי כחול בהיר */
+        0 0 0.5vw rgba(100, 180, 255, 0.8),
+        /* שכבה שנייה - צל חיצוני כהה יותר */
+        0.2vw 0.2vw 0.5vw rgba(0, 100, 200, 0.7),
+        /* שכבה שלישית - הילה מסביב */
+        0 0 1vw rgba(100, 180, 255, 0.5),
+        /* שכבה רביעית - צל רחוק כהה */
+        0.3vw 0.3vw 1vw rgba(0, 0, 0, 0.8);
     position: relative;
+    z-index: 10;
+    color: #ffffff; /* צבע לבן בוהק יותר */
+    font-weight: 800; /* משקל פונט חזק יותר */
+    /* הוספת קו מתאר דק */
+    -webkit-text-stroke: 0.03em rgba(0, 120, 255, 0.3);
+    letter-spacing: 0.01em; /* מרווח קל בין האותיות */
+    /* הוספת ביצועי רנדור טובים יותר */
+    transform: translateZ(0);
+    will-change: transform;
+    filter: brightness(1.05) contrast(1.1);
+}
+
+/* עיצוב ספציפי לעברית - מותאם לפונט עברי */
+.he .feature-title {
+    font-weight: 900; /* משקל פונט חזק יותר בעברית */
+    letter-spacing: -0.01em; /* צפיפות קלה בין האותיות בעברית */
 }
 
 /* Grid pattern */
@@ -129,6 +152,15 @@
     .last\:pb-0:last-child {
         padding-bottom: 0 !important;
     }
+    
+    /* חיזוק נוסף לכותרות במסכים גדולים */
+    .feature-title {
+        text-shadow: 
+            0 0 0.3vw rgba(100, 180, 255, 0.9),
+            0.15vw 0.15vw 0.4vw rgba(0, 100, 200, 0.8),
+            0 0 0.8vw rgba(100, 180, 255, 0.6),
+            0.3vw 0.3vw 1.2vw rgba(0, 0, 0, 0.9);
+    }
 }
 
 /* Optimize for horizontal display (mobile) */
@@ -139,6 +171,16 @@
     
     .dynamic-arrow {
         margin-bottom: 1rem;
+    }
+    
+    /* חיזוק הכותרות למובייל - צלליות מותאמות למסך קטן */
+    .feature-title {
+        text-shadow: 
+            0 0 2px rgba(100, 180, 255, 0.9),
+            1px 1px 3px rgba(0, 100, 200, 0.8),
+            0 0 5px rgba(100, 180, 255, 0.6),
+            2px 2px 7px rgba(0, 0, 0, 0.9);
+        -webkit-text-stroke: 0.5px rgba(0, 120, 255, 0.4);
     }
     
     /* אנימציית התמקדות למובייל במקום אנימציית ריחוף */

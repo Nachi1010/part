@@ -191,7 +191,17 @@ export const Registration = () => {
         
         // ניווט לדף תודה רק אם כל הפרטים מולאו
         if (allFieldsValid) {
-          navigate('/thank-you');
+          // יצירת פרמטרים לשליחה לדף הנחיתה
+          const params = new URLSearchParams({
+            name: formData.name || '',
+            email: formData.email || '',
+            phone: formData.phone || '',
+            id: formData.id || '',
+            source: 'main_registration_form'
+          }).toString();
+          
+          // ניווט לאתר HR עם הפרמטרים
+          window.location.href = `https://hr.practicsai.com?${params}`;
         }
       } else {
         // הצגת הודעת שגיאה עם פירוט החסרים

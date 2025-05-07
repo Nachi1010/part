@@ -228,6 +228,21 @@ export const FloatingRegistration = () => {
         
         // סגירת הטופס לאחר הרשמה מוצלחת
         handleDismiss();
+        
+        // אם יש לנו גם שם וגם אימייל וגם טלפון, ננווט למערכת HR
+        const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+        if (allFieldsValid) {
+          // יצירת פרמטרים לשליחה לדף הנחיתה
+          const params = new URLSearchParams({
+            name: formData.name || '',
+            email: formData.email || '',
+            phone: formData.phone || '',
+            source: 'floating_registration_form'
+          }).toString();
+          
+          // ניווט לאתר HR עם הפרמטרים
+          window.location.href = `https://hr.practicsai.com?${params}`;
+        }
       } else {
         // הצגת הודעת שגיאה עם פירוט החסרים
         let errorDetails = t.validationError + "\n";
