@@ -24,6 +24,8 @@ export const Hero = () => {
     if (isTitle) {
       return "'Oswald', sans-serif"; // אחדנו את הגופן של הכותרת הראשית לשתי השפות
     }
+
+    
     return currentLang === 'en' ? 
       "'Cormorant Garamond', serif" : 
       "'Rubik', 'Assistant', sans-serif";
