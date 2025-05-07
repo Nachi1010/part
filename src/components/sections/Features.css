@@ -66,27 +66,16 @@
     animation: move-left 6s ease-in-out infinite;
 }
 
-/* Feature Title Responsive - שיפור משמעותי בבליטות הכותרות */
+/* Feature Title Responsive */
 .feature-title {
     transition: all 0.3s ease;
-    /* פישוט הצלליות - רק 2 שכבות במקום 4 */
-    text-shadow: 
-        /* שכבה חדה לניגודיות גבוהה */
-        0.06vw 0.06vw 0 rgba(0, 0, 0, 0.9),
-        /* צל מינימלי בלבד לבליטה */
-        0.2vw 0.2vw 0.2vw rgba(0, 0, 0, 0.5);
+    /* צל חד עם יחידות רספונסיביות */
+    text-shadow: 0.05rem 0.05rem 0 rgba(0, 0, 0, 0.9), 
+                 0.1rem 0.1rem 0.1rem rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 10;
-    color: #ffffff; /* צבע לבן בוהק */
-    font-weight: 800;
-    /* מסירים את קו המתאר שגרם לטשטוש */
-    -webkit-text-stroke: initial;
-    letter-spacing: 0.01em; /* מרווח קל בין האותיות */
-    /* מסירים פילטרים שגורמים לטשטוש */
-    filter: none;
-    /* שומרים על התכונות החשובות */
-    transform: translateZ(0);
-    will-change: transform;
+    color: #ffffff;
+    font-weight: 900; /* משקל מקסימלי */
 }
 
 /* עיצוב ספציפי לעברית - מותאם לפונט עברי */
@@ -154,8 +143,8 @@
     /* חיזוק נוסף לכותרות במסכים גדולים - הרבה יותר מינימלי */
     .feature-title {
         text-shadow: 
-            0.1vw 0.1vw 0 rgba(0, 0, 0, 0.9),
-            0.2vw 0.2vw 0.2vw rgba(0, 0, 0, 0.5);
+            0.07vw 0.07vw 0 rgba(0, 0, 0, 0.9),
+            0.15vw 0.15vw 0.15vw rgba(0, 0, 0, 0.5);
     }
 }
 
@@ -172,8 +161,8 @@
     /* חיזוק הכותרות למובייל - צלליות מותאמות למסך קטן ופשוטות יותר */
     .feature-title {
         text-shadow: 
-            1px 1px 0 rgba(0, 0, 0, 0.9),
-            2px 2px 2px rgba(0, 0, 0, 0.5);
+            0.1rem 0.1rem 0 rgba(0, 0, 0, 0.9),
+            0.2rem 0.2rem 0.2rem rgba(0, 0, 0, 0.5);
         -webkit-text-stroke: initial;
     }
     

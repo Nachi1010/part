@@ -143,7 +143,8 @@ const Feature = ({
             style={{ 
               direction: getTextDirection(),
               fontSize: "clamp(2rem, 6.5vw, 4.5rem)",
-              lineHeight: "1.2"
+              lineHeight: "1.2",
+              letterSpacing: currentLang === "he" ? "-0.01em" : "0.01em"
             }}
           >
             {title}

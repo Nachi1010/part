@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserData } from "@/contexts/UserDataContext";
@@ -15,7 +14,6 @@ export const FloatingRegistration = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [dismissedTime, setDismissedTime] = useState<number | null>(null);
-  const navigate = useNavigate();
   
   // מעקב אחר זמן השהייה בדף ופתיחת הטופס
   useEffect(() => {
@@ -31,14 +29,12 @@ export const FloatingRegistration = () => {
       
       // אם עברה דקה מאז שהטופס נסגר, נאפשר הצגה חוזרת
       if (timeSinceDismiss >= REAPPEAR_DELAY) {
-        console.log('Re-enabling form after 1 minute since dismiss');
         setIsDismissed(false);
         setDismissedTime(null);
       } else {
         // אם טרם עברה דקה, נמתין עד שתעבור דקה מהסגירה
         const remainingTime = REAPPEAR_DELAY - timeSinceDismiss;
         timer = setTimeout(() => {
-          console.log('Time to show form again after dismiss');
           setIsDismissed(false);
           setDismissedTime(null);
         }, remainingTime);
@@ -47,7 +43,6 @@ export const FloatingRegistration = () => {
     // אם הטופס לא נסגר בעבר ולא מוצג כרגע, נציג אותו אחרי חצי דקה
     else if (!isDismissed && !isVisible) {
       timer = setTimeout(() => {
-        console.log('Showing floating registration form after 30 seconds');
         setIsVisible(true);
       }, INITIAL_SHOW_DELAY);
     }
@@ -79,7 +74,6 @@ export const FloatingRegistration = () => {
     setIsVisible(false);
     setIsDismissed(true);
     setDismissedTime(Date.now()); // שומר את הזמן שבו הטופס נסגר
-    console.log('Form dismissed, will reappear in 1 minute');
   };
 
   // תרגומים
@@ -136,7 +130,7 @@ export const FloatingRegistration = () => {
     return digitsOnly.length >= 9;
   };
 
-  // עדכון הלוגיקה של השליחה
+  // עדכון הלוגיקה של השליחה - משתמש באותה לוגיקה כמו קובץ Registration.tsx
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -195,16 +189,10 @@ export const FloatingRegistration = () => {
         }
       };
       
-      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
+      // הוספת כתובת IP אם זמינה - פשוט וישיר
       if (userIp && userIp.trim() !== '') {
-        try {
-          registrationData['ip_address'] = userIp;
-          
-          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
-          registrationData.metadata['ip_address'] = userIp;
-        } catch (ipError) {
-          console.warn('Could not add IP address to registration data', ipError);
-        }
+        registrationData['ip_address'] = userIp;
+        registrationData.metadata['ip_address'] = userIp;
       }
       
       // שליחה לסופבייס עם טבלה "registration_data"
@@ -212,10 +200,34 @@ export const FloatingRegistration = () => {
 
       if (error) throw error;
 
+      // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לטבלת הלוגים - בדיוק כמו בטופס הרגיל
+      try {
+        await supabase.from('activity_log').insert([{
+          user_id: null, // ה-trigger יטפל בזה
+          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
+          table_name: 'registration_data',
+          details: {
+            form_data: {
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
+            },
+            previous_registration_id: existingUserId,
+            has_valid_email: hasValidEmail,
+            has_valid_phone: hasValidPhone,
+            client_timestamp: new Date().toISOString()
+          }
+        }]);
+      } catch (logError) {
+        // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
+        console.warn('Failed to write to activity log:', logError);
+      }
+
       // בדיקת תנאים להצגת הודעת הצלחה
       const nameAndEmailValid = hasValidName && hasValidEmail;
       const phoneValid = hasValidPhone;
       const showSuccessMessage = nameAndEmailValid || phoneValid;
+      const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
       
       if (showSuccessMessage) {
         // הצגת הודעת הצלחה
@@ -229,8 +241,7 @@ export const FloatingRegistration = () => {
         // סגירת הטופס לאחר הרשמה מוצלחת
         handleDismiss();
         
-        // אם יש לנו גם שם וגם אימייל וגם טלפון, ננווט למערכת HR
-        const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+        // אם כל השדות תקינים, ננווט לדף HR
         if (allFieldsValid) {
           // יצירת פרמטרים לשליחה לדף הנחיתה
           const params = new URLSearchParams({
@@ -287,50 +298,99 @@ export const FloatingRegistration = () => {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 transform transition-transform duration-500 ease-in-out"
+      className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
       style={{
         direction,
-        transform: isVisible ? 'translateY(0)' : 'translateY(100%)'
+        transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
+        animation: isVisible ? 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+        perspective: '1000px',
+        willChange: 'transform'
       }}
     >
-      <div className="mx-auto max-w-md">
-        {/* כרטיס הטופס - עם עיצוב צף */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes float-in {
+            0% { 
+              transform: translateY(100%);
+              opacity: 0; 
+            }
+            30% { 
+              opacity: 1; 
+            }
+            100% { 
+              transform: translateY(0);
+              opacity: 1; 
+            }
+          }
+          
+          .glow-effect {
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          
+          .glow-button:hover .glow-effect {
+            opacity: 0.5;
+            animation: pulse 2s infinite;
+          }
+          
+          @keyframes pulse {
+            0% { 
+              transform: scale(0.95);
+              opacity: 0.3;
+            }
+            50% { 
+              transform: scale(1.05); 
+              opacity: 0.5;
+            }
+            100% { 
+              transform: scale(0.95);
+              opacity: 0.3;
+            }
+          }
+        `
+      }} />
+
+      <div className="w-full max-w-lg mx-auto">
+        {/* כרטיס הטופס - עם עיצוב יוקרתי יותר */}
         <div 
-          className="bg-white dark:bg-gray-800 rounded-t-lg shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+          className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-2xl overflow-hidden border border-slate-700 relative"
           style={{ 
-            boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)'
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
+            maxWidth: '100%',
           }}
         >
-          {/* כפתור סגירה */}
+          {/* כפתור סגירה - ממוקם בתוך הכרטיס */}
           <button 
             onClick={handleDismiss}
-            className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
             aria-label="סגור טופס"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-4 w-4 text-slate-300" />
           </button>
           
           {/* כותרת */}
           <div 
-            className="p-6" 
+            className="p-6 pb-4" 
             style={{ 
-              background: 'linear-gradient(135deg, #2b4c7e 0%, #1e293b 100%)'
+              background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
             }}
           >
             <h2 className="text-2xl font-bold text-white mb-1">
               {t.title}
             </h2>
-            <p className="text-white opacity-80 text-sm">
+            <p className="text-slate-300 opacity-90 text-sm">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-6">
+          <div className="p-6 pt-4">
             <form onSubmit={onSubmit} className="space-y-4">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.nameLabel}
                 </label>
                 <input
@@ -339,13 +399,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.emailLabel}
                 </label>
                 <input
@@ -354,13 +414,13 @@ export const FloatingRegistration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-slate-200">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -370,29 +430,32 @@ export const FloatingRegistration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
-              {/* כפתור שליחה */}
+              {/* כפתור שליחה - עם עיצוב יוקרתי יותר */}
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70"
+                  className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
                   style={{ 
-                    background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)'
+                    background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
                   }}
                 >
+                  <span className="absolute inset-0 w-full h-full glow-effect"></span>
                   {isSubmitting ? (
-                    <span className="flex items-center justify-center">
+                    <span className="flex items-center justify-center relative z-10">
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       {t.loading}
                     </span>
-                  ) : t.submitButton}
+                  ) : <span className="relative z-10">{t.submitButton}</span>}
                 </button>
               </div>
             </form>
