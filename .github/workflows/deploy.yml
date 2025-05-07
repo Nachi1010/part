@@ -36,7 +36,7 @@ jobs:
         run: |
           # הגדרת CNAME עבור הדומיין הראשי
           [ -f CNAME ] && cp CNAME dist/ || echo "practicsai.com" > dist/CNAM
-      
+          touch dist/.nojekyll
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
