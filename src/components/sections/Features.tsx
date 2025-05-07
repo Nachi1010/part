@@ -143,11 +143,7 @@ const Feature = ({
             style={{ 
               direction: getTextDirection(),
               fontSize: "clamp(2rem, 6.5vw, 4.5rem)",
-              lineHeight: "1.2",
-              textRendering: "optimizeLegibility",
-              fontSmooth: "always",
-              WebkitFontSmoothing: "antialiased",
-              MozOsxFontSmoothing: "grayscale"
+              lineHeight: "1.2"
             }}
           >
             {title}
