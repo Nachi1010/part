@@ -55,7 +55,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
         transform: 'translateY(0)' 
       }}
     >
-      <div className="container mx-auto flex items-center justify-between h-full px-2 sm:px-4 lg:px-8">
+      <div className="container mx-auto flex items-center justify-between h-full px-0 sm:px-4 lg:px-8">
         <div className="flex items-center gap-2 md:gap-4">
           <Button
             variant="ghost"
@@ -85,7 +85,8 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="text-blue-900 hover:bg-dark-light/20 transition-colors"
+          style={{ color: '#1E3A8A' }}
+          className="hover:bg-dark-light/20 transition-colors"
           aria-label={t.languageLabel}
         >
           <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
