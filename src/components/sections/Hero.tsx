@@ -32,13 +32,13 @@ export const Hero = () => {
   };
 
   return (
-    <header id="hero" className="main-header relative text-center text-white h-[clamp(15vh,45vw,83vh)] overflow-hidden">
+    <header id="hero" className="main-header relative text-center text-white h-[clamp(15vh,45vw,83vh)] overflow-hidden -mt-[clamp(1rem,2vw,2rem)]">
       <picture>
         <source srcSet={getImagePath("/images/1.webp")} type="image/webp" />
         <img 
           src={getImagePath("/images/1.jpeg")}
           alt="AI Revolution Background"
-          className="absolute top-0 left-0 w-full h-full object-cover brightness-70 z-0 select-none transition-[filter] duration-300 ease-in-out"
+          className="absolute top-0 left-0 w-full h-[calc(100%+clamp(1rem,2vw,2rem))] object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
           loading="eager"
           fetchPriority="high"
         />
@@ -85,10 +85,13 @@ export const Hero = () => {
         
         {/* Subtle highlight around the headers */}
         <div 
-          className="absolute top-0 z-0 w-full h-full"
+          className="absolute -z-10"
           style={{ 
+            width: "100%", 
+            height: "100%",
             background: "radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%)",
-            [currentLang === 'en' ? 'left' : 'right']: "0"
+            [currentLang === 'en' ? 'left' : 'right']: "0",
+            top: "0"
           }}
         />
       </div>

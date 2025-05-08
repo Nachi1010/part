@@ -26,13 +26,9 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
   const { currentLang, setCurrentLang } = useLanguage();
 
-  const [prevScrollY, setPrevScrollY] = useState(0);
-  
   const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    setScrolled(currentScrollY > prevScrollY && currentScrollY > 20);
-    setPrevScrollY(currentScrollY);
-  }, [prevScrollY]);
+    setScrolled(window.scrollY > 50);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -46,39 +42,41 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
       className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out backdrop-blur-md
         ${scrolled ? 'h-[clamp(3rem,4vw,4rem)] bg-slate-800/85' : 'h-[clamp(4rem,6vw,6rem)] bg-slate-800'}`}
       role="banner"
+      style={{ 
+        transform: 'translateY(0)' 
+      }}
     >
-      <div className="container mx-auto flex items-center justify-between h-full px-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`hover:bg-dark-light/20 text-high-contrast transition-all duration-700 pl-0
-            ${scrolled ? 'h-10 w-10' : 'h-12 w-12'}`}
-          onClick={onMenuToggle}
-          aria-label={t.menuLabel}
-        >
-          <Menu className={`transition-all duration-700 ${scrolled ? 'h-6 w-6' : 'h-8 w-8'}`} aria-hidden="true" />
-        </Button>
-        
-        <Link 
-          to="/" 
-          className="absolute left-1/2 -translate-x-1/2 hover:opacity-90 transition-opacity md:relative md:left-auto md:transform-none md:ml-2 md:mr-auto"
-          aria-label="Home"
-        >
-          <picture>
-            <img 
-              src={getImagePath("/images/2.png")}
-              alt="CloserAI"
-              className={`w-auto transition-all duration-700 
-                ${scrolled ? 'h-8 md:h-10' : 'h-12 md:h-16'}`}
-            />
-          </picture>
-        </Link>
-        
+      <div className="container mx-auto flex items-center justify-between h-full">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`hover:bg-dark-light/20 text-high-contrast transition-all duration-700
+              ${scrolled ? 'h-10 w-10' : 'h-12 w-12'}`}
+            onClick={onMenuToggle}
+            aria-label={t.menuLabel}
+          >
+            <Menu className={`transition-all duration-700 ${scrolled ? 'h-6 w-6' : 'h-8 w-8'}`} aria-hidden="true" />
+          </Button>
+          <Link 
+            to="/" 
+            className="flex items-center hover:opacity-90 transition-opacity"
+            aria-label="Home"
+          >
+            <picture>
+              <img 
+                src={getImagePath("/images/2.png")}
+                alt="CloserAI"
+                className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
+              />
+            </picture>
+          </Link>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="hover:bg-dark-light/20 transition-colors pr-0 text-blue-900"
+          className="text-high-contrast hover:bg-dark-light/20 transition-colors"
           aria-label={t.languageLabel}
         >
           <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
