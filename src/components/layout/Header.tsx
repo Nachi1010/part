@@ -81,18 +81,21 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             </picture>
           </Link>
         </div>        
-
-        <div 
+        <Button 
+          variant="ghost" 
+          size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="hover:bg-dark-light/20 rounded-md px-3 py-2 transition-colors font-bold cursor-pointer"
-          style={{color: '#0f172a'}}
-          role="button"
+          className="hover:bg-dark-light/20 transition-colors font-bold"
           aria-label={t.languageLabel}
+          style={{
+            color: '#0f172a', 
+            '--tw-text-opacity': '1',
+            '--text-color': '#0f172a'
+          } as React.CSSProperties}
         >
-          <div className="flex items-center justify-center" style={{color: '#0f172a'}}>
-            <Globe className="h-5 w-5 mr-2" style={{color: '#0f172a'}} aria-hidden="true" />
-            <div style={{color: '#0f172a', fontWeight: 'bold'}}>{t.toggleLanguage}</div>
-          </div>
+          <Globe className="h-5 w-5 mr-2" style={{color: '#0f172a'}} aria-hidden="true" />
+          <div style={{color: '#0f172a', fontWeight: 'bold', display: 'inline'}}>{t.toggleLanguage}</div>
+        </Button>
         </div>
     </header>
   );
