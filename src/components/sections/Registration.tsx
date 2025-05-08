@@ -304,71 +304,46 @@ export const Registration = () => {
         }}
       ></div>
       
-      {/* שכבת אנימציית גרדיאנט גולשת - משופרת */}
-      <div 
-        className="absolute inset-0" 
-        style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0) 70%)",
-          opacity: 0.8,
-          zIndex: "-2",
-          animation: bgAnimationEnabled ? "pulse-gradient 8s infinite alternate" : "none"
-        }}
-      ></div>
-
-      {/* שכבת אוברליי גריד משופרת */}
-      <div 
-        className="absolute inset-0" 
-        style={{
-          backgroundImage: `linear-gradient(rgba(22, 26, 48, 0.4) 1px, transparent 1px), 
-                            linear-gradient(to right, rgba(22, 26, 48, 0.4) 1px, transparent 1px)`,
-          backgroundSize: "clamp(20px, 5vw, 50px) clamp(20px, 5vw, 50px)",
-          opacity: 0.5,
-          zIndex: "-1"
-        }}
-      ></div>
-
-      {/* שכבת אוברליי גרדיאנט נוספת עם אנימציה - משופרת */}
-      <div 
-        className="absolute inset-0" 
-        style={{
-          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.5) 100%)",
-          opacity: bgAnimationEnabled ? 0.8 : 0.7,
-          zIndex: "-1",
-          animation: bgAnimationEnabled ? "fade-gradient 10s infinite alternate" : "none"
-        }}
-      ></div>
+      {/* שכבת רקע הגריד מתוך סקשן Features */}
+      <div className="absolute inset-0 bg-grid-pattern" style={{
+        opacity: bgAnimationEnabled ? 0.65 : 0.5,
+        zIndex: "-2",
+        animation: bgAnimationEnabled ? "subtle-pulse 15s infinite alternate" : "none"
+      }}></div>
+      
+      {/* שכבת שקיפות איכותית ויוקרתית */}
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.8) 100%)",
+        backdropFilter: "blur(2px)",
+        opacity: 0.85,
+        zIndex: "-1"
+      }}></div>
 
       {/* אנימציות CSS */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes pulse-gradient {
+          @keyframes subtle-pulse {
             0% {
-              opacity: 0.6;
+              opacity: 0.5;
               transform: scale(1);
             }
             50% {
-              opacity: 0.8;
-              transform: scale(1.05);
+              opacity: 0.7;
+              transform: scale(1.03);
             }
             100% {
-              opacity: 0.6;
+              opacity: 0.5;
               transform: scale(1);
             }
           }
           
-          @keyframes fade-gradient {
-            0% {
-              opacity: 0.6;
-              background-position: 0% 50%;
-            }
-            50% {
-              opacity: 0.8;
-              background-position: 100% 50%;
-            }
-            100% {
-              opacity: 0.6;
-              background-position: 0% 50%;
-            }
+          .bg-grid-pattern {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw),
+              linear-gradient(to right, rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw);
+            background-size: 1vw 1vw;
+            background-position: center;
+            background-repeat: repeat;
           }
         `
       }} />

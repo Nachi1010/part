@@ -58,7 +58,7 @@ export const FloatingRegistration = () => {
         console.log("מציג את הטופס הצף לאחר הזמן הראשוני");
         setIsVisible(true);
       }
-    }, 30000); // 30 שניות - זמן הופעה מקורי
+    }, 3000); // 3 שניות לצורך בדיקה, להחזיר ל-30000 בגרסה סופית
     
     return () => clearTimeout(initialTimer);
   }, []);
@@ -96,7 +96,7 @@ export const FloatingRegistration = () => {
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
     let lastAutoSubmitTime = 0;
-    const AUTO_SUBMIT_COOLDOWN = 120000; // 2 דקות בין שליחות אוטומטיות
+    const AUTO_SUBMIT_COOLDOWN = 1200; 
     const SCROLL_THRESHOLD = 100; // הסף המינימלי של גלילה בפיקסלים להפעלת הטריגר
     
     // אירוע גלילה בדף
@@ -123,7 +123,8 @@ export const FloatingRegistration = () => {
           console.log("זוהתה אינטראקציה עם הטופס הראשי");
         }
         setUserInteractedWithMainForm(true);
-        // כאשר המשתמש רואה את הטופס הרגיל, מסתירים את הטופס הצף אבל לא מסמנים אותו כסגור
+        // כאשר המשתמש רואה את הטופס הרגיל, מסתירים את הטופס הצף
+        setIsDismissed(true);
         setIsVisible(false);
       }
       
@@ -133,18 +134,7 @@ export const FloatingRegistration = () => {
         if (!userScrolledAfterMainForm) {
           console.log("המשתמש ראה את הטופס הראשי וכעת גלל ממנו");
           setUserScrolledAfterMainForm(true);
-          
-          // איפוס דגל הסגירה כדי לאפשר הופעה מחדש של הטופס הצף
-          setIsDismissed(false);
-          
-          // טיימר להצגת הטופס הצף לאחר גלילה מהטופס הראשי
-          setTimeout(() => {
-            const mainFormVisible = document.getElementById('registration-form')?.getBoundingClientRect().top < window.innerHeight;
-            if (!mainFormVisible) {
-              console.log("מציג את הטופס הצף לאחר גלילה מהטופס הראשי");
-              setIsVisible(true);
-            }
-          }, 30000); // 30 שניות אחרי שגללו מהטופס הראשי
+          resetFloatingFormState();
         }
         
         // בדיקה אם עברו 2 דקות מאז השליחה האחרונה ואם נגלל רחוק מהטופס
@@ -176,7 +166,7 @@ export const FloatingRegistration = () => {
                 lastAutoSubmitTime = currentTime;
                 
                 // אחרי שליחת נתונים אוטומטית, מאפסים את מצב הטופס הצף
-                resetFloatingFormState();
+
               }
             }
           } catch (error) {

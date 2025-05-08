@@ -142,7 +142,7 @@ const Feature = ({
             className={`text-3xl md:text-4xl lg:text-5xl font-bold feature-title text-royal-light ${textAlignment} leading-tight`}
             style={{ 
               direction: getTextDirection(),
-              fontSize: "clamp(2rem, 6.5vw, 4.5rem)",
+              fontSize: "clamp(2rem, 6.5vw, 3.8rem)",
               lineHeight: "1.2",
               letterSpacing: currentLang === "he" ? "-0.01em" : "0.01em"
             }}
