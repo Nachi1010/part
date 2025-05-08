@@ -22,7 +22,6 @@ export const Testimonials = () => {
             {!showVideo ? (
               <>
                 <picture>
-                  <source srcSet={getImagePath("/images/f.avif")} type="image/avif" />
                   <source srcSet={getImagePath("/images/f.webp")} type="image/webp" />
                   <img 
                     src={getImagePath("/images/f.jpeg")}
