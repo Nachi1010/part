@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="he">
   <head>
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-16922611528"></script>
+<script defer src="https://www.googletagmanager.com/gtag/js?id=AW-16922611528"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,11 +17,16 @@
   <!-- Canonical URL -->
   <link rel="canonical" href="https://practicsai.com" />
 
-  <!-- Preloading Fonts -->
-  <link rel="preload" href="./src/fonts/Oswald-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="preload" href="./src/fonts/Assistant-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="preload" href="./src/fonts/Rubik-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="preload" href="./src/fonts/AmaticSC-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <!-- אסינכרוני: טעינת גופנים מבלי לעכב את הדף -->
+  <link rel="preload" href="./src/fonts/Oswald-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous" media="print" onload="this.media='all'">
+  <link rel="preload" href="./src/fonts/Assistant-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous" media="print" onload="this.media='all'">
+  <link rel="preload" href="./src/fonts/Rubik-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous" media="print" onload="this.media='all'">
+  <link rel="preload" href="./src/fonts/AmaticSC-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous" media="print" onload="this.media='all'">
+
+  <!-- פתרון גיבוי במקרה שג'אווה סקריפט כבוי -->
+  <noscript>
+    <link rel="stylesheet" href="./src/fonts/fonts.css">
+  </noscript>
 
   <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
   <meta property="og:type" content="website" />

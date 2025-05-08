@@ -291,7 +291,7 @@ export const Registration = () => {
         overflow: "hidden"
       }}
     >
-      {/* רקע תמונה - השארנו רק את זה */}
+      {/* רקע תמונה */}
       <div 
         className="absolute inset-0"
         style={{
@@ -300,21 +300,37 @@ export const Registration = () => {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           filter: "brightness(0.4)",
-          zIndex: "-2"
+          zIndex: "-3"
         }}
       ></div>
       
-      {/* שכבת אנימציית גלים לבנים - עכשיו ישירות מעל התמונה */}
-      <div className="absolute inset-0 wave-animation" style={{
+      {/* שכבת שקיפות איכותית עם גרדיאנט - הוחזרה */}
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.8) 100%)",
+        backdropFilter: "blur(2px)",
+        opacity: 0.85,
+        zIndex: "-2"
+      }}></div>
+      
+      {/* שכבת אנימציית גלים לבנים ראשונה - מהירה יותר */}
+      <div className="absolute inset-0 wave-animation-primary" style={{
         zIndex: "-1",
         overflow: "hidden",
         opacity: bgAnimationEnabled ? 0.9 : 0.7,
+      }}></div>
+      
+      {/* שכבת אנימציית גלים לבנים שנייה - כיוון הפוך */}
+      <div className="absolute inset-0 wave-animation-secondary" style={{
+        zIndex: "-1",
+        overflow: "hidden",
+        opacity: bgAnimationEnabled ? 0.7 : 0.5,
       }}></div>
 
       {/* אנימציות CSS */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          .wave-animation::after {
+          /* גל ראשי - מהיר יותר, צבע כסוף */
+          .wave-animation-primary::after {
             content: '';
             position: absolute;
             top: -150%;
@@ -324,19 +340,45 @@ export const Registration = () => {
             background: linear-gradient(
               45deg,
               transparent 0%,
-              rgba(255, 255, 255, 0.02) 30%,
-              rgba(255, 255, 255, 0.04) 45%,
-              rgba(255, 255, 255, 0.02) 60%,
+              rgba(255, 255, 255, 0.03) 30%,
+              rgba(255, 255, 255, 0.06) 45%,
+              rgba(255, 255, 255, 0.03) 60%,
               transparent 100%
             );
             transform: rotate(45deg);
-            animation: shine 8s infinite linear;
+            animation: shine-primary 6s infinite linear;
             pointer-events: none;
           }
           
-          @keyframes shine {
+          @keyframes shine-primary {
             0% { transform: translate(-100%, -100%) rotate(45deg); }
             100% { transform: translate(100%, 100%) rotate(45deg); }
+          }
+          
+          /* גל משני - איטי יותר, כיוון הפוך, גוון תכלת */
+          .wave-animation-secondary::after {
+            content: '';
+            position: absolute;
+            top: -150%;
+            right: -50%;
+            width: 200%;
+            height: 300%;
+            background: linear-gradient(
+              -45deg,
+              transparent 0%,
+              rgba(173, 216, 230, 0.01) 30%,
+              rgba(173, 216, 230, 0.04) 45%,
+              rgba(173, 216, 230, 0.01) 60%,
+              transparent 100%
+            );
+            transform: rotate(-45deg);
+            animation: shine-secondary 8s infinite linear;
+            pointer-events: none;
+          }
+          
+          @keyframes shine-secondary {
+            0% { transform: translate(100%, -100%) rotate(-45deg); }
+            100% { transform: translate(-100%, 100%) rotate(-45deg); }
           }
         `
       }} />
