@@ -469,7 +469,7 @@ export const Registration = () => {
                   disabled={isSubmitting}
                   className="w-full py-2.5 sm:py-3 px-4 sm:px-6 text-white font-semibold rounded-lg shadow-md disabled:opacity-70 relative overflow-hidden"
                   style={{ 
-                    background: "linear-gradient(90deg, #2563eb 0%, #1e40af 100%)",
+                    background: "linear-gradient(90deg, #334155 0%, #1e293b 100%)",
                     boxShadow: "0 0.25rem 0.625rem rgba(0, 0, 0, 0.3)",
                     transition: "all 0.3s ease"
                   }}
