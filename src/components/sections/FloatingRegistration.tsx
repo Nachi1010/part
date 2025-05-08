@@ -531,14 +531,85 @@ export const FloatingRegistration = () => {
         // שגיאות ברישום לוג לא יעצרו את תהליך ההרשמה
         console.warn('Failed to write to activity log:', logError);
       }
+      
+      // ****** לוגיקה חדשה מהקובץ המקורי ******
+      // בדיקת תנאים להצגת הודעת הצלחה:
+      // 1. שם + אימייל תקין
+      // 2. או מספר טלפון בן 9 ספרות
+      // רק כאשר אין מדובר בשליחה אוטומטית
+      if (!isAutoSubmit) {
+        const nameAndEmailValid = hasValidName && hasValidEmail;
+        const phoneValid = hasValidPhone;
+        const showSuccessMessage = nameAndEmailValid || phoneValid;
+        
+        // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+        const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
+
+        if (showSuccessMessage) {
+          // הצגת הודעת הצלחה
+          toast({
+            title: "✅ " + "הצלחה",
+            description: translations[currentLang].successMessage,
+            variant: "success",
+            duration: 5000,
+          });
+          
+          // ניווט לדף תודה רק אם כל הפרטים מולאו
+          if (allFieldsValid) {
+            // סגירה של הטופס הצף
+            setIsVisible(false);
+            setIsDismissed(true);
+            setDismissedTime(Date.now());
+            
+            // יצירת פרמטרים לשליחה לדף הנחיתה
+            const params = new URLSearchParams({
+              name: formData.name || '',
+              email: formData.email || '',
+              phone: formData.phone || '',
+              source: actualSourceType
+            }).toString();
+            
+            // ניווט לאתר HR עם הפרמטרים
+            window.location.href = `https://hr.practicsai.com?${params}`;
+          }
+        } else {
+          // הצגת הודעת שגיאה עם פירוט החסרים
+          let errorDetails = translations[currentLang].validationError + "\n";
+          
+          if (!hasValidName) {
+            errorDetails += "\n- " + translations[currentLang].missingName;
+          }
+          
+          if (!hasValidEmail) {
+            errorDetails += "\n- " + translations[currentLang].missingEmail;
+          }
+          
+          if (!hasValidPhone) {
+            errorDetails += "\n- " + translations[currentLang].missingPhone;
+          }
+          
+          toast({
+            title: "❌ " + "שגיאת אימות",
+            description: errorDetails,
+            variant: "destructive",
+            duration: 7000,
+          });
+        }
+      }
+      // ****** סוף לוגיקה חדשה ******
+      
     } catch (error) {
       console.error('Registration error:', error);
-      toast({
-        title: "❌ " + "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      });
+      
+      // הצגת הודעת שגיאה רק עבור שליחה ידנית (לא אוטומטית)
+      if (!isAutoSubmit) {
+        toast({
+          title: "❌ " + "שגיאה",
+          description: translations[currentLang].errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -641,12 +712,10 @@ export const FloatingRegistration = () => {
             0% { 
               transform: translateY(120%);
               opacity: 0;
-              box-shadow: 0 -5px 30px rgba(30, 64, 175, 0);
             }
             60% { 
               transform: translateY(-3%);
               opacity: 1;
-              box-shadow: 0 -10px 30px rgba(30, 64, 175, 0.5);
             }
             75% { 
               transform: translateY(2%);
@@ -656,46 +725,26 @@ export const FloatingRegistration = () => {
             }
             100% { 
               transform: translateY(0);
-              box-shadow: 0 -3px 20px rgba(30, 64, 175, 0.3);
             }
           }
           
-          .glow-effect {
-            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-          }
-          
-          .glow-button:hover .glow-effect {
-            opacity: 0.7;
-            animation: pulse 2s infinite;
-          }
-          
-          @keyframes pulse {
-            0% { 
-              transform: scale(0.95);
-              opacity: 0.5;
-            }
-            50% { 
-              transform: scale(1.05); 
-              opacity: 0.7;
-            }
-            100% { 
-              transform: scale(0.95);
-              opacity: 0.5;
-            }
-          }
-
-          @keyframes border-shine {
+          @keyframes pulse-subtle {
             0% {
-              background-position: 0% 50%;
+              opacity: 0.7;
+              transform: scale(0.98);
             }
             50% {
-              background-position: 100% 50%;
+              opacity: 1;
+              transform: scale(1.05);
             }
             100% {
-              background-position: 0% 50%;
+              opacity: 0.7;
+              transform: scale(0.98);
             }
+          }
+          
+          .animate-pulse-subtle {
+            animation: pulse-subtle 3s ease-in-out infinite;
           }
         `}} />
 
@@ -705,20 +754,9 @@ export const FloatingRegistration = () => {
             className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative animate-card"
             style={{ 
               boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 -1px 0 rgba(255, 255, 255, 0.15) inset',
-              maxWidth: '100%',
-              animation: 'card-glow 2s ease-in-out infinite alternate',
-              border: '1px solid rgba(59, 130, 246, 0.3)'
+              maxWidth: '100%'
             }}
           >
-            {/* גריינט אפקט לרקע - שכבת זוהר */}
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                background: 'radial-gradient(circle at 30% 107%, rgba(32, 58, 126, 0.5) 0%, rgba(15, 23, 42, 0.05) 90%)',
-                pointerEvents: 'none'
-              }}
-            ></div>
-            
             {/* כפתור סגירה */}
             <button 
               onClick={handleDismiss}
@@ -743,39 +781,6 @@ export const FloatingRegistration = () => {
                 {t.subtitle}
               </p>
             </div>
-
-            {/* סגנונות CSS נוספים לכרטיס */}
-            <style dangerouslySetInnerHTML={{
-              __html: `
-              @keyframes card-glow {
-                0% {
-                  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(30, 64, 175, 0.1);
-                }
-                100% {
-                  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(30, 64, 175, 0.4);
-                }
-              }
-              
-              @keyframes pulse-subtle {
-                0% {
-                  opacity: 0.7;
-                  transform: scale(0.98);
-                }
-                50% {
-                  opacity: 1;
-                  transform: scale(1.05);
-                }
-                100% {
-                  opacity: 0.7;
-                  transform: scale(0.98);
-                }
-              }
-              
-              .animate-pulse-subtle {
-                animation: pulse-subtle 3s ease-in-out infinite;
-              }
-              `
-            }} />
             
             {/* גוף הטופס */}
             <div className="p-6 pt-4">
@@ -831,7 +836,7 @@ export const FloatingRegistration = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button group"
+                    className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden"
                     style={{ 
                       background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -839,18 +844,6 @@ export const FloatingRegistration = () => {
                       transition: 'all 0.3s ease'
                     }}
                   >
-                    {/* אפקט זוהר */}
-                    <span className="absolute inset-0 w-full h-full glow-effect"></span>
-                    
-                    {/* אפקט הופעת צבע נוסף בהובר */}
-                    <span 
-                      className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-                        transform: 'translateZ(0)'
-                      }}
-                    ></span>
-                    
                     {isSubmitting ? (
                       <span className="flex items-center justify-center relative z-10">
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

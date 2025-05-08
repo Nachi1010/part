@@ -69,7 +69,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           </Button>
           <Link 
             to="/" 
-            className="flex items-center hover:opacity-90 transition-opacity md:ml-4 lg:ml-8"
+            className="flex items-center hover:opacity-90 transition-opacity md:ml-12 lg:ml-20 xl:ml-32"
             aria-label="Home"
           >
             <picture>
@@ -85,11 +85,11 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          style={{ color: '#1E3A8A' }}
-          className="hover:bg-dark-light/20 transition-colors"
+          className="hover:bg-dark-light/20 transition-colors font-bold text-slate-900 dark:text-white"
           aria-label={t.languageLabel}
+          style={{ color: '#0f172a' }}
         >
-          <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
+          <Globe className="h-5 w-5 mr-2 text-slate-900 dark:text-white" style={{ color: '#0f172a' }} aria-hidden="true" />
           {t.toggleLanguage}
         </Button>
       </div>
