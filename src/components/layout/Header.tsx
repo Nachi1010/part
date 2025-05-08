@@ -85,7 +85,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="hover:bg-dark-light/20 transition-colors font-bold text-slate-900"
+          className="hover: font-bold text-slate-900"
           aria-label={t.languageLabel}
           style={{ color: '#0f172a !important' }}
         >
