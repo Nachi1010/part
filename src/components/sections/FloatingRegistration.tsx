@@ -34,7 +34,7 @@ export const FloatingRegistration = () => {
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
     let lastAutoSubmitTime = 0;
-    const AUTO_SUBMIT_COOLDOWN = 1200; // 2 דקות בין שליחות אוטומטיות
+    const AUTO_SUBMIT_COOLDOWN = 120000; // 2 דקות בין שליחות אוטומטיות
     const SCROLL_THRESHOLD = 100; // הסף המינימלי של גלילה בפיקסלים להפעלת הטריגר
     
     // אירוע גלילה בדף
@@ -91,13 +91,41 @@ export const FloatingRegistration = () => {
         
         // בדיקה אם צריך לשלוח את הנתונים באופן אוטומטי
         // רק אם יש נתונים כלשהם בטופס ולא נשלחו ב-2 דקות האחרונות
-        if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN &&
-            (formData.name || formData.email || formData.phone) &&
-            currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
-          
-          // שולח את הנתונים באופן אוטומטי לאחר גלילה
-          submitFormData(true);
-          lastAutoSubmitTime = currentTime;
+        if (currentTime - lastAutoSubmitTime > AUTO_SUBMIT_COOLDOWN) {
+          // איסוף נתונים מהטופס הראשי
+          try {
+            const mainForm = document.getElementById('registration-form');
+            if (mainForm) {
+              const nameInput = mainForm.querySelector('input[name="name"]') as HTMLInputElement;
+              const emailInput = mainForm.querySelector('input[name="email"]') as HTMLInputElement;
+              const phoneInput = mainForm.querySelector('input[name="phone"]') as HTMLInputElement;
+              
+              // בודק אם יש נתונים כלשהם בטופס הראשי
+              const hasMainFormData = nameInput?.value || emailInput?.value || phoneInput?.value;
+              
+              if (hasMainFormData && currentTime - (lastSubmitTime || 0) > AUTO_SUBMIT_COOLDOWN) {
+                console.log("שליחה אוטומטית של נתונים מהטופס הראשי בעת גלילה");
+                
+                // אם יש נתונים בטופס הראשי, נעדכן את ה-formData המקומי
+                const tempFormData = {
+                  name: nameInput?.value || '',
+                  email: emailInput?.value || '',
+                  phone: phoneInput?.value || ''
+                };
+                
+                // שולח את נתוני הטופס הראשי
+                submitFormDataFromMainForm(tempFormData);
+                lastAutoSubmitTime = currentTime;
+              }
+            } else if (formData.name || formData.email || formData.phone) {
+              // אם אין טופס ראשי, בודק אם יש נתונים בטופס הצף
+              console.log("שליחה אוטומטית של נתונים מהטופס הצף בעת גלילה");
+              submitFormData(true);
+              lastAutoSubmitTime = currentTime;
+            }
+          } catch (error) {
+            console.error("שגיאה בשליחת נתונים אוטומטית בעת גלילה:", error);
+          }
         }
       }
       
@@ -170,24 +198,43 @@ export const FloatingRegistration = () => {
         }, remainingTime);
       }
     }
-    // תנאי 2: הצגה ראשונית של הטופס לאחר גלילה בדף
-    else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible) {
-      // נציג את הטופס לאחר INITIAL_SHOW_DELAY מהגלילה הראשונית
-      console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מגלילה ראשונית`);
-      timer = setTimeout(() => {
-        // בדיקה נוספת שהטופס הראשי לא נראה כעת
-        const mainFormElement = document.getElementById('registration-form');
-        const isMainFormVisibleNow = mainFormElement ? 
-          mainFormElement.getBoundingClientRect().top < window.innerHeight && 
-          mainFormElement.getBoundingClientRect().bottom > 0 : false;
-        
-        if (!isMainFormVisibleNow) {
-          setIsVisible(true);
-          console.log("מציג טופס צף לאחר גלילה ראשונית והשהייה");
-        } else {
-          console.log("דילוג על הצגת טופס צף כי הטופס העיקרי מוצג כעת");
+    // תנאי 2: הצגה ראשונית של הטופס לאחר גלילה בדף או משך זמן בדף
+    else if (!isDismissed && !isVisible && !isMainFormVisible) {
+      let shouldShowAfterDelay = false;
+      let delayToUse = INITIAL_SHOW_DELAY;
+      
+      // אם המשתמש גלל בדף, נציג את הטופס הצף
+      if (hasScrolled) {
+        console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מגלילה ראשונית`);
+        shouldShowAfterDelay = true;
+      }
+      // אם המשתמש לא גלל אבל נמצא בדף מספיק זמן, נציג את הטופס הצף בכל מקרה
+      else {
+        // בודק אם המשתמש נמצא בדף לפחות INITIAL_SHOW_DELAY זמן
+        const timeOnPage = currentTime - formTimestampRef.current;
+        if (timeOnPage >= INITIAL_SHOW_DELAY) {
+          console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מהכניסה לדף ללא גלילה`);
+          shouldShowAfterDelay = true;
+          delayToUse = 5000; // הצג כמעט מיד אם כבר עבר מספיק זמן
         }
-      }, INITIAL_SHOW_DELAY);
+      }
+      
+      if (shouldShowAfterDelay) {
+        timer = setTimeout(() => {
+          // בדיקה נוספת שהטופס הראשי לא נראה כעת
+          const mainFormElement = document.getElementById('registration-form');
+          const isMainFormVisibleNow = mainFormElement ? 
+            mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+            mainFormElement.getBoundingClientRect().bottom > 0 : false;
+          
+          if (!isMainFormVisibleNow && !isDismissed) {
+            setIsVisible(true);
+            console.log("מציג טופס צף לאחר גלילה ראשונית/זמן בדף והשהייה");
+          } else {
+            console.log("דילוג על הצגת טופס צף כי הטופס העיקרי מוצג כעת או שהטופס נסגר ידנית");
+          }
+        }, delayToUse);
+      }
     }
     // תנאי 3: הצגה מיידית של הטופס אם יש גלילה וכל שאר התנאים מתקיימים
     else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible && userScrolledAfterMainForm) {
