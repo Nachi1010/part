@@ -304,26 +304,26 @@ export const Registration = () => {
         }}
       ></div>
       
-      {/* שכבת שקיפות איכותית עם גרדיאנט - הוחזרה */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.8) 100%)",
-        backdropFilter: "blur(2px)",
-        opacity: 0.85,
-        zIndex: "-2"
-      }}></div>
-      
       {/* שכבת אנימציית גלים לבנים ראשונה - מהירה יותר */}
       <div className="absolute inset-0 wave-animation-primary" style={{
-        zIndex: "-1",
+        zIndex: "-2",
         overflow: "hidden",
         opacity: bgAnimationEnabled ? 0.9 : 0.7,
       }}></div>
       
       {/* שכבת אנימציית גלים לבנים שנייה - כיוון הפוך */}
       <div className="absolute inset-0 wave-animation-secondary" style={{
-        zIndex: "-1",
+        zIndex: "-2",
         overflow: "hidden",
         opacity: bgAnimationEnabled ? 0.7 : 0.5,
+      }}></div>
+      
+      {/* שכבת שקיפות איכותית עם גרדיאנט - מעל האנימציות */}
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(circle at 50% 50%, rgba(0, 0, 20, 0.2) 0%, rgba(5, 10, 30, 0.5) 70%, rgba(10, 15, 40, 0.6) 100%)",
+        backdropFilter: "blur(1px)",
+        opacity: 0.7,
+        zIndex: "-1"
       }}></div>
 
       {/* אנימציות CSS */}
