@@ -14,6 +14,7 @@ export const Registration = () => {
   const { userIp, isIpLoaded } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [bgAnimationEnabled] = useState(true);
   
   // מצב הטופס
   const [formData, setFormData] = useState({
@@ -106,7 +107,6 @@ export const Registration = () => {
       // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
       let existingUserId = null;
       
-      try {
       // נבדוק אם המשתמש קיים לפי אימייל
       if (hasValidEmail) {
         const { data: existingUserByEmail } = await supabase
@@ -133,10 +133,6 @@ export const Registration = () => {
           existingUserId = existingUserByPhone[0].user_id;
           console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
         }
-        }
-      } catch (searchError) {
-        console.error("שגיאה בחיפוש משתמש קיים:", searchError);
-        // ממשיכים בתהליך גם אם יש שגיאת חיפוש
       }
       
       // הכנת האובייקט לשליחה לסופאבייס
@@ -146,7 +142,6 @@ export const Registration = () => {
         email: formData.email || '',
         phone: formData.phone || '',
         id_number: formData.id || '',
-        source: navigator.userAgent.includes('Mobile') ? 'mobile_main_form' : 'desktop_main_form',
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
@@ -154,8 +149,7 @@ export const Registration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded, // מידע נוסף לצורכי ניטור
-          is_mobile: navigator.userAgent.includes('Mobile')
+          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
         }
       };
       
@@ -172,15 +166,10 @@ export const Registration = () => {
         }
       }
       
-      console.log("שולח נתוני רישום:", JSON.stringify(registrationData));
-      
       // שליחה לסופבייס עם טבלה "registration_data"
       const { error } = await supabase.from('registration_data').insert([registrationData]);
 
-      if (error) {
-        console.error("שגיאת סופאבייס:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       // בדיקת תנאים להצגת הודעת הצלחה:
       // 1. שם + אימייל תקין
@@ -203,21 +192,17 @@ export const Registration = () => {
         
         // ניווט לדף תודה רק אם כל הפרטים מולאו
         if (allFieldsValid) {
-          try {
           // יצירת פרמטרים לשליחה לדף הנחיתה
           const params = new URLSearchParams({
             name: formData.name || '',
             email: formData.email || '',
             phone: formData.phone || '',
             id: formData.id || '',
-              source: navigator.userAgent.includes('Mobile') ? 'mobile_main_form' : 'main_registration_form'
+            source: 'main_registration_form'
           }).toString();
           
           // ניווט לאתר HR עם הפרמטרים
           window.location.href = `https://hr.practicsai.com?${params}`;
-          } catch (navigationError) {
-            console.error("שגיאה בניסיון לנווט לדף תודה:", navigationError);
-          }
         }
       } else {
         // הצגת הודעת שגיאה עם פירוט החסרים
@@ -262,8 +247,7 @@ export const Registration = () => {
             previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
             has_valid_phone: hasValidPhone,
-            client_timestamp: new Date().toISOString(),
-            device_type: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop'
+            client_timestamp: new Date().toISOString()
           }
         }]);
       } catch (logError) {
@@ -340,7 +324,7 @@ export const Registration = () => {
           background: "radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 60%)",
           opacity: 0.7,
           zIndex: "-1",
-          animation: "pulse-subtle 8s infinite alternate"
+          animation: bgAnimationEnabled ? "pulse-subtle 8s infinite alternate" : "none"
         }}
       ></div>
       
@@ -360,13 +344,6 @@ export const Registration = () => {
             background-size: 1vw 1vw;
             background-position: center;
             background-repeat: repeat;
-          }
-          
-          /* Mobile optimization */
-          @media (max-width: 768px) {
-            .bg-grid-pattern {
-              background-size: 3vw 3vw;
-            }
           }
         `
       }} />
@@ -411,7 +388,7 @@ export const Registration = () => {
           
           {/* גוף הטופס */}
           <div className="p-5 md:p-6 lg:p-8 text-white">
-            <form onSubmit={onSubmit} className="space-y-4 md:space-y-5" noValidate>
+            <form onSubmit={onSubmit} className="space-y-4 md:space-y-5">
               {/* שם */}
               <div>
                 <label className="block text-sm font-medium mb-1 md:mb-2 text-gray-200">
@@ -450,7 +427,6 @@ export const Registration = () => {
                 <input
                   type="email"
                   name="email"
-                  inputMode="email"
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
@@ -466,7 +442,6 @@ export const Registration = () => {
                 <input
                   type="tel"
                   name="phone"
-                  inputMode="tel"
                   placeholder={t.phonePlaceholder}
                   value={formData.phone}
                   style={{ direction }}
