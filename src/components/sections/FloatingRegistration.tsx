@@ -59,7 +59,9 @@ export const FloatingRegistration = () => {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     zIndex: 9998,
     display: isVisible ? 'block' : 'none',
-    pointerEvents: 'none' // חשוב - מאפשר גלילה דרך שכבת השקיפות
+    height: '100vh', // מבטיח שהשכבה תכסה את כל גובה המסך
+    width: '100vw', // מבטיח שהשכבה תכסה את כל רוחב המסך
+    pointerEvents: 'all' // מאפשר אינטראקציה עם הרקע
   } as React.CSSProperties;
 
   // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי
@@ -616,7 +618,10 @@ export const FloatingRegistration = () => {
   const renderResult = !isVisible ? null : (
     <>
       {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}
-      <div style={overlayStyle}></div>
+      <div 
+        style={overlayStyle} 
+        onClick={handleDismiss} // מאפשר סגירה בלחיצה על הרקע
+      ></div>
       
       <div 
         id="floating-registration-form"
@@ -624,49 +629,73 @@ export const FloatingRegistration = () => {
         style={{
           direction,
           transform: 'translateY(0)',
-          animation: 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+          animation: 'float-in 1.2s cubic-bezier(0.36, 1.1, 0.2, 1.2)',
           perspective: '1000px',
-          willChange: 'transform',
-          backgroundColor: 'rgba(0, 0, 0, 0.4)' // שכבת רקע שחורה לחלק התחתון בלבד
+          willChange: 'transform, opacity',
+          backgroundColor: 'transparent'
         }}
       >
         {/* סגנונות CSS לאנימציה */}
         <style dangerouslySetInnerHTML={{
           __html: `
           @keyframes float-in {
-            from { 
-              transform: translateY(100%);
+            0% { 
+              transform: translateY(120%);
               opacity: 0;
+              box-shadow: 0 -5px 30px rgba(30, 64, 175, 0);
             }
-            to { 
+            60% { 
+              transform: translateY(-3%);
+              opacity: 1;
+              box-shadow: 0 -10px 30px rgba(30, 64, 175, 0.5);
+            }
+            75% { 
+              transform: translateY(2%);
+            }
+            90% { 
+              transform: translateY(-1%);
+            }
+            100% { 
               transform: translateY(0);
-              opacity: 1; 
+              box-shadow: 0 -3px 20px rgba(30, 64, 175, 0.3);
             }
           }
           
           .glow-effect {
             background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.5s ease;
           }
           
           .glow-button:hover .glow-effect {
-            opacity: 0.5;
+            opacity: 0.7;
             animation: pulse 2s infinite;
           }
           
           @keyframes pulse {
             0% { 
               transform: scale(0.95);
-              opacity: 0.3;
+              opacity: 0.5;
             }
             50% { 
               transform: scale(1.05); 
-              opacity: 0.5;
+              opacity: 0.7;
             }
             100% { 
               transform: scale(0.95);
-              opacity: 0.3;
+              opacity: 0.5;
+            }
+          }
+
+          @keyframes border-shine {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
             }
           }
         `}} />
@@ -674,16 +703,27 @@ export const FloatingRegistration = () => {
         <div className="w-full max-w-lg mx-auto">
           {/* כרטיס הטופס */}
           <div 
-            className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative"
+            className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative animate-card"
             style={{ 
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
+              boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 -1px 0 rgba(255, 255, 255, 0.15) inset',
               maxWidth: '100%',
+              animation: 'card-glow 2s ease-in-out infinite alternate',
+              border: '1px solid rgba(59, 130, 246, 0.3)'
             }}
           >
+            {/* גריינט אפקט לרקע - שכבת זוהר */}
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                background: 'radial-gradient(circle at 30% 107%, rgba(32, 58, 126, 0.5) 0%, rgba(15, 23, 42, 0.05) 90%)',
+                pointerEvents: 'none'
+              }}
+            ></div>
+            
             {/* כפתור סגירה */}
             <button 
               onClick={handleDismiss}
-              className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
+              className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20 hover:rotate-90 transform duration-300"
               aria-label="סגור טופס"
             >
               <X className="h-4 w-4 text-slate-300" />
@@ -694,16 +734,50 @@ export const FloatingRegistration = () => {
               className="p-6 pb-4" 
               style={{ 
                 background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                borderBottom: '1px solid rgba(59, 130, 246, 0.2)'
               }}
             >
-              <h2 className="text-2xl font-bold text-white mb-1">
+              <h2 className="text-2xl font-bold text-white mb-1 flex items-center">
+                <span className="mr-2 animate-pulse-subtle opacity-90">✨</span>
                 {t.title}
               </h2>
               <p className="text-slate-300 opacity-90 text-sm">
                 {t.subtitle}
               </p>
             </div>
+
+            {/* סגנונות CSS נוספים לכרטיס */}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              @keyframes card-glow {
+                0% {
+                  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(30, 64, 175, 0.1);
+                }
+                100% {
+                  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(30, 64, 175, 0.4);
+                }
+              }
+              
+              @keyframes pulse-subtle {
+                0% {
+                  opacity: 0.7;
+                  transform: scale(0.98);
+                }
+                50% {
+                  opacity: 1;
+                  transform: scale(1.05);
+                }
+                100% {
+                  opacity: 0.7;
+                  transform: scale(0.98);
+                }
+              }
+              
+              .animate-pulse-subtle {
+                animation: pulse-subtle 3s ease-in-out infinite;
+              }
+              `
+            }} />
             
             {/* גוף הטופס */}
             <div className="p-6 pt-4">
@@ -759,14 +833,26 @@ export const FloatingRegistration = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
+                    className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button group"
                     style={{ 
                       background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
+                      transition: 'all 0.3s ease'
                     }}
                   >
+                    {/* אפקט זוהר */}
                     <span className="absolute inset-0 w-full h-full glow-effect"></span>
+                    
+                    {/* אפקט הופעת צבע נוסף בהובר */}
+                    <span 
+                      className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
+                        transform: 'translateZ(0)'
+                      }}
+                    ></span>
+                    
                     {isSubmitting ? (
                       <span className="flex items-center justify-center relative z-10">
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -775,7 +861,25 @@ export const FloatingRegistration = () => {
                         </svg>
                         {t.loading}
                       </span>
-                    ) : <span className="relative z-10">{t.submitButton}</span>}
+                    ) : (
+                      <span className="relative z-10 flex items-center justify-center">
+                        {t.submitButton}
+                        <svg 
+                          className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" 
+                          />
+                        </svg>
+                      </span>
+                    )}
                   </button>
                 </div>
               </form>

@@ -38,7 +38,7 @@ export const Hero = () => {
         <img 
           src={getImagePath("/images/1.jpeg")}
           alt="AI Revolution Background"
-          className="absolute top-0 left-0 w-full h-full object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
+          className="absolute top-0 left-0 w-full h-full object-cover brightness-70 z-0 select-none transition-[filter] duration-300 ease-in-out"
           loading="eager"
           fetchPriority="high"
         />
@@ -85,13 +85,10 @@ export const Hero = () => {
         
         {/* Subtle highlight around the headers */}
         <div 
-          className="absolute -z-10"
+          className="absolute top-0 z-0 w-full h-full"
           style={{ 
-            width: "100%", 
-            height: "100%",
             background: "radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%)",
-            [currentLang === 'en' ? 'left' : 'right']: "0",
-            top: "0"
+            [currentLang === 'en' ? 'left' : 'right']: "0"
           }}
         />
       </div>
