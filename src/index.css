@@ -18,6 +18,12 @@
   --secondary-foreground: #e2e8f0;
   --black: #000000;
   --white: #ffffff;
+  --scroll-behavior: smooth;
+}
+
+/* תמיכה גלובלית בגלילה חלקה */
+html {
+  scroll-behavior: smooth;
 }
 
 * {
