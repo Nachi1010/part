@@ -61,7 +61,7 @@ export const FloatingRegistration = () => {
     display: isVisible ? 'block' : 'none',
     height: '100vh', // מבטיח שהשכבה תכסה את כל גובה המסך
     width: '100vw', // מבטיח שהשכבה תכסה את כל רוחב המסך
-    pointerEvents: 'none' // שינוי ל-all כדי שהקליק על הרקע יתפס
+    pointerEvents: 'none' // חוסם אינטראקציה עם הרקע - לא ניתן לסגור בלחיצה על הרקע
   } as React.CSSProperties;
 
   // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי
@@ -617,8 +617,10 @@ export const FloatingRegistration = () => {
   // בדיקה חשובה: האם הקומפוננטה באמת מציגה את הטופס
   const renderResult = !isVisible ? null : (
     <>
-      {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}
-      <div style={overlayStyle}></div>
+      {/* שכבת האפלה למסך מלא - ללא אפשרות גלילה דרכה */}
+      <div 
+        style={overlayStyle}
+      ></div>
       
       <div 
         id="floating-registration-form"
@@ -734,11 +736,10 @@ export const FloatingRegistration = () => {
                 borderBottom: '1px solid rgba(59, 130, 246, 0.2)'
               }}
             >
-              <h2 className="text-2xl font-bold text-white mb-1 flex items-center">
-                <span className="mr-2 animate-pulse-subtle opacity-90">✨</span>
+              <h2 className="text-2xl font-bold text-white mb-1 text-center">
                 {t.title}
               </h2>
-              <p className="text-slate-300 opacity-90 text-sm">
+              <p className="text-slate-300 opacity-90 text-sm text-center">
                 {t.subtitle}
               </p>
             </div>
@@ -861,20 +862,6 @@ export const FloatingRegistration = () => {
                     ) : (
                       <span className="relative z-10 flex items-center justify-center">
                         {t.submitButton}
-                        <svg 
-                          className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24" 
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M14 5l7 7m0 0l-7 7m7-7H3" 
-                          />
-                        </svg>
                       </span>
                     )}
                   </button>
