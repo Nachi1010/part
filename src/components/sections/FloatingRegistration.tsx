@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 
 // קומפוננטת רישום צפה שמופיעה לאחר גלילה בדף
 export const FloatingRegistration = () => {
+  console.log("FloatingRegistration רונדרה - התחלה");
   const { currentLang, getTextDirection } = useLanguage();
   const { userIp, isIpLoaded } = useUserData();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +28,19 @@ export const FloatingRegistration = () => {
     phone: ""
   });
   
+  // בדיקה מיידית להצגת הטופס לצורך דיבאג
+  useEffect(() => {
+    console.log("בדיקת מצב הטופס הצף בעת האתחול:", { isVisible, isDismissed });
+    
+    // נסה להציג את הטופס הצף אחרי 3 שניות לצורך דיבאג
+    const debugTimer = setTimeout(() => {
+      console.log("מנסה להציג את הטופס הצף באופן מאולץ");
+      setIsVisible(true);
+    }, 3000);
+    
+    return () => clearTimeout(debugTimer);
+  }, []);
+  
   // מעקב אחר גלילה ראשונית והצגת הטופס
   useEffect(() => {
     // מאזין לאירועי גלילה
@@ -34,7 +48,7 @@ export const FloatingRegistration = () => {
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
     let lastAutoSubmitTime = 0;
-    const AUTO_SUBMIT_COOLDOWN = 120000; // 2 דקות בין שליחות אוטומטיות
+    const AUTO_SUBMIT_COOLDOWN = 1200; // 2 דקות בין שליחות אוטומטיות
     const SCROLL_THRESHOLD = 100; // הסף המינימלי של גלילה בפיקסלים להפעלת הטריגר
     
     // אירוע גלילה בדף
@@ -150,7 +164,7 @@ export const FloatingRegistration = () => {
   // מעקב אחר זמן השהייה בדף ופתיחת הטופס
   useEffect(() => {
     // קבועי זמן
-    const INITIAL_SHOW_DELAY = 30000; // חצי דקה להצגה ראשונית (30 שניות)
+    const INITIAL_SHOW_DELAY = 10000; // 10 שניות להצגה ראשונית (במקום 30 שניות)
     const REAPPEAR_DELAY = 60000; // דקה להופעה חוזרת (60 שניות)
     
     let timer: ReturnType<typeof setTimeout>;
@@ -167,7 +181,8 @@ export const FloatingRegistration = () => {
       isVisible, 
       hasScrolled, 
       isMainFormVisible,
-      dismissedTime: dismissedTime ? new Date(dismissedTime).toLocaleTimeString() : "אין"
+      dismissedTime: dismissedTime ? new Date(dismissedTime).toLocaleTimeString() : "אין",
+      currentTime: new Date(currentTime).toLocaleTimeString()
     });
     
     // תנאי 1: אם המשתמש סגר את הטופס באופן יזום, נציג אותו שוב לאחר דקה
@@ -175,13 +190,14 @@ export const FloatingRegistration = () => {
       const timeSinceDismiss = currentTime - dismissedTime;
       
       if (timeSinceDismiss >= REAPPEAR_DELAY) {
+        console.log("חלף זמן מספיק מאז הסגירה, מציג טופס מחדש");
         setIsDismissed(false);
         setDismissedTime(null);
         // הצגה מפורשת של הטופס לאחר הזמן שחלף
         setIsVisible(true);
-        console.log("מציג טופס צף שוב לאחר סגירה יזומה וזמן המתנה");
       } else {
         const remainingTime = REAPPEAR_DELAY - timeSinceDismiss;
+        console.log(`נותרו ${remainingTime/1000} שניות להצגה מחדש של הטופס`);
         timer = setTimeout(() => {
           const mainFormElement = document.getElementById('registration-form');
           const isMainFormVisibleNow = mainFormElement ? 
@@ -189,37 +205,19 @@ export const FloatingRegistration = () => {
             mainFormElement.getBoundingClientRect().bottom > 0 : false;
             
           if (!isMainFormVisibleNow) {
+            console.log("מציג טופס צף לאחר סיום זמן המתנה");
             setIsDismissed(false);
             setDismissedTime(null);
             // הצגה מפורשת של הטופס
             setIsVisible(true);
-            console.log("מציג טופס צף שוב לאחר סגירה יזומה וסיום זמן המתנה");
           }
         }, remainingTime);
       }
     }
     // תנאי 2: הצגה ראשונית של הטופס לאחר גלילה בדף או משך זמן בדף
     else if (!isDismissed && !isVisible && !isMainFormVisible) {
-      let shouldShowAfterDelay = false;
-      let delayToUse = INITIAL_SHOW_DELAY;
-      
-      // אם המשתמש גלל בדף, נציג את הטופס הצף
-      if (hasScrolled) {
-        console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מגלילה ראשונית`);
-        shouldShowAfterDelay = true;
-      }
-      // אם המשתמש לא גלל אבל נמצא בדף מספיק זמן, נציג את הטופס הצף בכל מקרה
-      else {
-        // בודק אם המשתמש נמצא בדף לפחות INITIAL_SHOW_DELAY זמן
-        const timeOnPage = currentTime - formTimestampRef.current;
-        if (timeOnPage >= INITIAL_SHOW_DELAY) {
-          console.log(`יציג טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות מהכניסה לדף ללא גלילה`);
-          shouldShowAfterDelay = true;
-          delayToUse = 5000; // הצג כמעט מיד אם כבר עבר מספיק זמן
-        }
-      }
-      
-      if (shouldShowAfterDelay) {
+      // קיצור משמעותי של זמן ההמתנה - הטופס יופיע אחרי 10 שניות בלבד כדי לבדוק את הפונקציונליות
+      console.log(`מגדיר טיימר להצגת טופס צף לאחר ${INITIAL_SHOW_DELAY/1000} שניות`);
         timer = setTimeout(() => {
           // בדיקה נוספת שהטופס הראשי לא נראה כעת
           const mainFormElement = document.getElementById('registration-form');
@@ -228,24 +226,13 @@ export const FloatingRegistration = () => {
             mainFormElement.getBoundingClientRect().bottom > 0 : false;
           
           if (!isMainFormVisibleNow && !isDismissed) {
+          console.log("מציג טופס צף לאחר זמן המתנה ראשוני");
+          // הצגה מפורשת של הטופס
             setIsVisible(true);
-            console.log("מציג טופס צף לאחר גלילה ראשונית/זמן בדף והשהייה");
           } else {
             console.log("דילוג על הצגת טופס צף כי הטופס העיקרי מוצג כעת או שהטופס נסגר ידנית");
           }
-        }, delayToUse);
-      }
-    }
-    // תנאי 3: הצגה מיידית של הטופס אם יש גלילה וכל שאר התנאים מתקיימים
-    else if (!isDismissed && !isVisible && hasScrolled && !isMainFormVisible && userScrolledAfterMainForm) {
-      // נבדוק את הזמן שחלף מהביקור בטופס הראשי
-      const timeSinceMainFormInteraction = currentTime - formTimestampRef.current;
-      
-      // אם חלפו לפחות 10 שניות מאז אינטראקציה עם הטופס המרכזי, נציג את הטופס הצף
-      if (timeSinceMainFormInteraction > 10000) {
-        console.log("מציג טופס צף מיידית לאחר 10 שניות מאינטראקציה עם הטופס הראשי");
-        setIsVisible(true);
-      }
+      }, INITIAL_SHOW_DELAY);
     }
     
     return () => {
@@ -693,63 +680,66 @@ export const FloatingRegistration = () => {
   // קבלת ערך ה-direction המתאים לשפה
   const direction = getTextDirection();
 
-  // אם הטופס לא מוצג, לא נרנדר כלום
-  if (!isVisible || isDismissed) return null;
-
-  return (
+  // לפני הרטרן - הוספת כמה בדיקות
+  useEffect(() => {
+    console.log("שינוי במצב isVisible:", isVisible);
+  }, [isVisible]);
+  
+  // בדיקה חשובה: האם הקומפוננטה באמת מציגה את הטופס
+  const renderResult = !isVisible ? null : (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
+      id="floating-registration-form"
+      className="fixed bottom-0 left-0 right-0 z-[9999] px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
       style={{
         direction,
-        transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
-        animation: isVisible ? 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+        transform: 'translateY(0)', // תמיד מציג את הטופס במצב דיבאג
+        animation: 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
         perspective: '1000px',
-        willChange: 'transform'
+        willChange: 'transform',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)'  // רקע כהה מאחורי הטופס
       }}
     >
+    
+      {/* סגנונות CSS לאנימציה */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes float-in {
-            0% { 
-              transform: translateY(100%);
-              opacity: 0; 
-            }
-            30% { 
-              opacity: 1; 
-            }
-            100% { 
-              transform: translateY(0);
-              opacity: 1; 
-            }
-          }
-          
-          .glow-effect {
-            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
+        @keyframes float-in {
+          from { 
+            transform: translateY(100%);
             opacity: 0;
-            transition: opacity 0.3s ease;
           }
-          
-          .glow-button:hover .glow-effect {
+          to { 
+            transform: translateY(0);
+            opacity: 1; 
+          }
+        }
+        
+        .glow-effect {
+          background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        .glow-button:hover .glow-effect {
+          opacity: 0.5;
+          animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+          0% { 
+            transform: scale(0.95);
+            opacity: 0.3;
+          }
+          50% { 
+            transform: scale(1.05); 
             opacity: 0.5;
-            animation: pulse 2s infinite;
           }
-          
-          @keyframes pulse {
-            0% { 
-              transform: scale(0.95);
-              opacity: 0.3;
-            }
-            50% { 
-              transform: scale(1.05); 
-              opacity: 0.5;
-            }
-            100% { 
-              transform: scale(0.95);
-              opacity: 0.3;
-            }
+          100% { 
+            transform: scale(0.95);
+            opacity: 0.3;
           }
-        `
-      }} />
+        }
+      `}} />
 
       <div className="w-full max-w-lg mx-auto">
         {/* כרטיס הטופס */}
@@ -864,4 +854,8 @@ export const FloatingRegistration = () => {
       </div>
     </div>
   );
+
+  console.log("FloatingRegistration - לפני החזרה:", { isVisible, isDismissed, renderResult: renderResult ? "יש תוכן" : "אין תוכן" });
+  
+  return renderResult;
 }; 
