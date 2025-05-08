@@ -90,7 +90,7 @@ export const TechnicalDetails = () => {
         {
           icon: <BookOpen className="w-4 h-4" />,
           title: "Hebrew Language:",
-          description: "All lectures in Tel Aviv branch will be conducted in Hebrew only"
+          description: "Every campus have spesific langague. Tel Aviv branch will be conducted in Hebrew only"
         }
       ]
     },

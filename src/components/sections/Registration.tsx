@@ -291,7 +291,7 @@ export const Registration = () => {
         overflow: "hidden"
       }}
     >
-      {/* רקע דינמי עם אנימציה משופרת */}
+      {/* רקע תמונה - השארנו רק את זה */}
       <div 
         className="absolute inset-0"
         style={{
@@ -300,50 +300,43 @@ export const Registration = () => {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           filter: "brightness(0.4)",
-          zIndex: "-3"
+          zIndex: "-2"
         }}
       ></div>
       
-      {/* שכבת רקע הגריד מתוך סקשן Features */}
-      <div className="absolute inset-0 bg-grid-pattern" style={{
-        opacity: bgAnimationEnabled ? 0.65 : 0.5,
-        zIndex: "-2",
-        animation: bgAnimationEnabled ? "subtle-pulse 15s infinite alternate" : "none"
-      }}></div>
-      
-      {/* שכבת שקיפות איכותית ויוקרתית */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.8) 100%)",
-        backdropFilter: "blur(2px)",
-        opacity: 0.85,
-        zIndex: "-1"
+      {/* שכבת אנימציית גלים לבנים - עכשיו ישירות מעל התמונה */}
+      <div className="absolute inset-0 wave-animation" style={{
+        zIndex: "-1",
+        overflow: "hidden",
+        opacity: bgAnimationEnabled ? 0.9 : 0.7,
       }}></div>
 
       {/* אנימציות CSS */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes subtle-pulse {
-            0% {
-              opacity: 0.5;
-              transform: scale(1);
-            }
-            50% {
-              opacity: 0.7;
-              transform: scale(1.03);
-            }
-            100% {
-              opacity: 0.5;
-              transform: scale(1);
-            }
+          .wave-animation::after {
+            content: '';
+            position: absolute;
+            top: -150%;
+            left: -50%;
+            width: 200%;
+            height: 300%;
+            background: linear-gradient(
+              45deg,
+              transparent 0%,
+              rgba(255, 255, 255, 0.02) 30%,
+              rgba(255, 255, 255, 0.04) 45%,
+              rgba(255, 255, 255, 0.02) 60%,
+              transparent 100%
+            );
+            transform: rotate(45deg);
+            animation: shine 8s infinite linear;
+            pointer-events: none;
           }
           
-          .bg-grid-pattern {
-            background-image: 
-              linear-gradient(rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw),
-              linear-gradient(to right, rgba(255, 255, 255, 0.05) 0.05vw, transparent 0.05vw);
-            background-size: 1vw 1vw;
-            background-position: center;
-            background-repeat: repeat;
+          @keyframes shine {
+            0% { transform: translate(-100%, -100%) rotate(45deg); }
+            100% { transform: translate(100%, 100%) rotate(45deg); }
           }
         `
       }} />
