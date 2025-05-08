@@ -24,20 +24,11 @@ const translations = {
 
 export const Header = ({ onMenuToggle }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
-  const [lastScrollTop, setLastScrollTop] = useState(0);
   const { currentLang, setCurrentLang } = useLanguage();
 
   const handleScroll = useCallback(() => {
-    const currentScrollTop = window.scrollY;
-    if (currentScrollTop > lastScrollTop) {
-      // גלילה למטה - הקטנת ההידר
-      setScrolled(true);
-    } else if (currentScrollTop < lastScrollTop) {
-      // גלילה למעלה - הגדלת ההידר
-      setScrolled(false);
-    }
-    setLastScrollTop(currentScrollTop);
-  }, [lastScrollTop]);
+    setScrolled(window.scrollY > 50);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -51,40 +42,46 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
       className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out backdrop-blur-md
         ${scrolled ? 'h-[clamp(3rem,4vw,4rem)] bg-slate-800/85' : 'h-[clamp(4rem,6vw,6rem)] bg-slate-800'}`}
       role="banner"
+      style={{ 
+        transform: 'translateY(0)' 
+      }}
     >
-      <div className="container mx-auto flex items-center h-full">
-        <div className="flex items-center justify-between w-full px-1 md:px-4">
+      <div className="container mx-auto flex items-center justify-between h-full">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="text-high-contrast ml-0 md:ml-0"
+            className={`hover:bg-dark-light/20 text-high-contrast transition-all duration-700
+              ${scrolled ? 'h-10 w-10' : 'h-12 w-12'}`}
             onClick={onMenuToggle}
             aria-label={t.menuLabel}
-            style={{ marginLeft: 0 }}
           >
-            <Menu className="h-6 w-6" />
+            <Menu className={`transition-all duration-700 ${scrolled ? 'h-6 w-6' : 'h-8 w-8'}`} aria-hidden="true" />
           </Button>
-          
-          <Link to="/" className="mx-auto md:mx-auto">
-            <img
-              src={getImagePath("kudu-removebg-preview.png")}
-              alt="Practics AI"
-              className="h-[2.5rem] md:h-[4.5rem] lg:h-[6.5rem] w-auto"
-              style={{ marginLeft: '1rem' }}
-            />
+          <Link 
+            to="/" 
+            className="flex items-center hover:opacity-90 transition-opacity"
+            aria-label="Home"
+          >
+            <picture>
+              <img 
+                src={getImagePath("/images/2.png")}
+                alt="CloserAI"
+                className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
+              />
+            </picture>
           </Link>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentLang(currentLang === 'en' ? 'he' : 'en')}
-            className="text-blue-900 mr-0 md:mr-0"
-            aria-label={t.languageLabel}
-            style={{ marginRight: 0, color: "#0a3172" }}
-          >
-            <Globe className="h-5 w-5" />
-          </Button>
         </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
+          className="text-high-contrast hover:bg-dark-light/20 transition-colors"
+          aria-label={t.languageLabel}
+        >
+          <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
+          {t.toggleLanguage}
+        </Button>
       </div>
     </header>
   );
