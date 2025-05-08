@@ -22,10 +22,10 @@ export const Testimonials = () => {
             {!showVideo ? (
               <>
                 <picture>
-                  <source srcSet={getImagePath("/images/3.avif")} type="image/avif" />
-                  <source srcSet={getImagePath("/images/3.webp")} type="image/webp" />
+                  <source srcSet={getImagePath("/images/f.avif")} type="image/avif" />
+                  <source srcSet={getImagePath("/images/f.webp")} type="image/webp" />
                   <img 
-                    src={getImagePath("/images/3.jpeg")}
+                    src={getImagePath("/images/f.jpeg")}
                     alt="AI Program Video"
                     className="w-full aspect-video object-cover"
                     loading="lazy" 
