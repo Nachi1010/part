@@ -109,79 +109,34 @@ export const Registration = () => {
     setIsSubmitting(true);
 
     try {
-      // בדיקות תקינות 
+      // בדיקות תקינות בסיסיות (רק לצורכי לוג)
       const hasValidName = formData.name && formData.name.trim() !== '';
       const hasValidEmail = isValidEmail(formData.email);
       const hasValidPhone = isValidPhone(formData.phone);
       
-      // חיפוש אם המשתמש כבר נרשם בעבר לפי אימייל או טלפון
-      let existingUserId = null;
+      console.log("שליחת נתונים בסיסיים לפני בדיקות נוספות - גישה פשוטה ויציבה");
       
-      // נבדוק אם המשתמש קיים לפי אימייל
-      if (hasValidEmail) {
-        const { data: existingUserByEmail } = await supabase
-          .from('registration_data')
-          .select('user_id')
-          .eq('email', formData.email)
-          .limit(1);
-          
-        if (existingUserByEmail && existingUserByEmail.length > 0) {
-          existingUserId = existingUserByEmail[0].user_id;
-          console.log("נמצא משתמש קיים לפי אימייל:", existingUserId);
-        }
-      }
-      
-      // אם לא מצאנו לפי אימייל, ננסה לפי טלפון
-      if (!existingUserId && hasValidPhone) {
-        const { data: existingUserByPhone } = await supabase
-          .from('registration_data')
-          .select('user_id')
-          .eq('phone', formData.phone)
-          .limit(1);
-          
-        if (existingUserByPhone && existingUserByPhone.length > 0) {
-          existingUserId = existingUserByPhone[0].user_id;
-          console.log("נמצא משתמש קיים לפי טלפון:", existingUserId);
-        }
-      }
-      
-      // הכנת האובייקט לשליחה לסופאבייס
-      const registrationData = {
-        // לא משתמשים ב-user_id קיים כלל - סופאבייס ייצור מזהה חדש
+      // קודם כל - שליחה לסופבייס בסיסית כמו בגרסה הישנה
+      const { error, data } = await supabase.from('registration_data').insert([{
         name: formData.name || '',
+        id_number: formData.id || '', 
         email: formData.email || '',
         phone: formData.phone || '',
-        id_number: formData.id || '',
-        // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
           form_locale: currentLang,
           form_timestamp: new Date().toISOString(),
-          previous_registration_id: existingUserId || null,
-          is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded, // מידע נוסף לצורכי ניטור
-          source: 'main_registration_form' // הוספנו את ה-source למטא-דאטה
-        }
-      };
-      
-      // הוספת כתובת IP לאובייקט רק אם הסכמה תומכת בשדה הזה
-      // אם השרת אינו תומך בשדה, הוא יישמט באופן אוטומטי
-      if (userIp && userIp.trim() !== '') {
-        try {
-          registrationData['ip_address'] = userIp;
-          
-          // שומרים גם במטא-דאטה למקרה שהעמודה לא קיימת בטבלה
-          registrationData.metadata['ip_address'] = userIp;
-        } catch (ipError) {
-          console.warn('Could not add IP address to registration data', ipError);
-        }
-      }
-      
-      // שליחה לסופבייס עם טבלה "registration_data"
-      const { error } = await supabase.from('registration_data').insert([registrationData]);
+          source: 'main_registration_form'
+        },
+        ip_address: userIp || null
+      }]).select();
 
       if (error) throw error;
-
+      
+      // קבלת ה-user_id החדש שנוצר
+      const newUserId = data && data[0] ? data[0].user_id : null;
+      console.log("רישום חדש בוצע בהצלחה, מזהה:", newUserId);
+      
       // בדיקת תנאים להצגת הודעת הצלחה:
       // 1. שם + אימייל תקין
       // 2. או מספר טלפון בן 9 ספרות
@@ -203,13 +158,19 @@ export const Registration = () => {
         
         // ניווט לדף תודה רק אם כל הפרטים מולאו
         if (allFieldsValid) {
-          // יצירת פרמטרים לשליחה לדף הנחיתה
+          // יצירת פרמטרים לשליחה לדף הנחיתה עם כל המטא-דאטה הרלוונטי
           const params = new URLSearchParams({
             name: formData.name || '',
             email: formData.email || '',
             phone: formData.phone || '',
             id: formData.id || '',
-            source: 'main_registration_form'
+            source: 'main_registration_form',
+            browser_info: encodeURIComponent(navigator.userAgent),
+            form_locale: currentLang,
+            form_timestamp: new Date().toISOString(),
+            user_id: newUserId || '',
+            registration_type: 'main_form',
+            ip_address: userIp || ''
           }).toString();
           
           // ניווט לאתר HR עם הפרמטרים
@@ -241,12 +202,9 @@ export const Registration = () => {
 
       // כדי לספק רישום טוב יותר של פעילות המשתמש, גם לקטבלת הלוגים
       try {
-        // אין לנו את ה-user_id החדש כי הוא נוצר אוטומטית בסופאבייס
-        // לכן נשתמש ב-null ונסמוך על הטריגר שיוסיף את המידע הדרוש
         await supabase.from('activity_log').insert([{
-          // אין לנו user_id במודל החדש, ה-trigger יטפל בזה
-          user_id: null,
-          action: existingUserId ? 'REGISTRATION_UPDATE' : 'REGISTRATION_NEW',
+          user_id: newUserId, // כעת יש לנו את ה-ID החדש
+          action: 'REGISTRATION_NEW',
           table_name: 'registration_data',
           details: {
             form_data: {
@@ -255,7 +213,6 @@ export const Registration = () => {
               phone: formData.phone || '',
               id_number: formData.id || '',
             },
-            previous_registration_id: existingUserId,
             has_valid_email: hasValidEmail,
             has_valid_phone: hasValidPhone,
             client_timestamp: new Date().toISOString()
@@ -267,11 +224,36 @@ export const Registration = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
+      
+      // הוספת מידע מורחב על השגיאה במובייל
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+      
+      let errorMsg = t.errorMessage;
+      
+      if (isMobile) {
+        console.error('שגיאת מובייל מזוהה בטופס ראשי:', {
+          userAgent: navigator.userAgent,
+          errorDetails: error instanceof Error ? error.message : String(error),
+          formData: {
+            nameProvided: !!formData.name,
+            emailProvided: !!formData.email,
+            phoneProvided: !!formData.phone,
+            idProvided: !!formData.id,
+            phoneValue: formData.phone
+          }
+        });
+        
+        errorMsg += "\n\nפרטי שגיאה למובייל: " + 
+          (error instanceof Error ? error.message : String(error));
+      }
+      
       toast({
         title: "❌ " + "Error",
-        description: t.errorMessage,
+        description: errorMsg,
         variant: "destructive",
-        duration: 5000,
+        duration: 7000,
       });
     } finally {
       setIsSubmitting(false);
