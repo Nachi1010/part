@@ -73,6 +73,8 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             aria-label="Home"
           >
             <picture>
+              <source srcSet={getImagePath("/images/2.avif")} type="image/avif" />
+              <source srcSet={getImagePath("/images/2.webp")} type="image/webp" />
               <img 
                 src={getImagePath("/images/2.png")}
                 alt="CloserAI"
