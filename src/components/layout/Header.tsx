@@ -81,18 +81,19 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             </picture>
           </Link>
         </div>        
-        <Button 
-          variant="ghost" 
-          size="sm" 
+
+        <div 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="hover:bg-dark-light/20 transition-colors font-bold text-slate-900"
+          className="hover:bg-dark-light/20 rounded-md px-3 py-2 transition-colors font-bold cursor-pointer"
+          style={{color: '#0f172a'}}
+          role="button"
           aria-label={t.languageLabel}
-          style={{ color: '#0f172a !important' }}
         >
-          <Globe className="h-5 w-5 mr-2 text-slate-900" style={{ color: '#0f172a !important' }} aria-hidden="true" />
-          <span style={{ color: '#0f172a !important' }}>{t.toggleLanguage}</span>
-        </Button>
-      </div>
+          <div className="flex items-center justify-center" style={{color: '#0f172a'}}>
+            <Globe className="h-5 w-5 mr-2" style={{color: '#0f172a'}} aria-hidden="true" />
+            <div style={{color: '#0f172a', fontWeight: 'bold'}}>{t.toggleLanguage}</div>
+          </div>
+        </div>
     </header>
   );
 };
