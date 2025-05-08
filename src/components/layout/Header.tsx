@@ -90,7 +90,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           style={{ color: '#0f172a !important' }}
         >
           <Globe className="h-5 w-5 mr-2 text-slate-900" style={{ color: '#0f172a !important' }} aria-hidden="true" />
-          {t.toggleLanguage}
+          <span style={{ color: '#0f172a !important' }}>{t.toggleLanguage}</span>
         </Button>
       </div>
     </header>
