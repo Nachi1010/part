@@ -13,7 +13,7 @@ export function PartnerLogos() {
     { name: "Anthropic", logo: "./images/partners/antrophic.png", logoWebp: "./images/partners/antrophic.webp", logoAvif: "./images/partners/antrophic.avif" },
     { name: "AI21", logo: "./images/partners/ai21.png", logoWebp: "./images/partners/ai21.webp", logoAvif: "./images/partners/ai21.avif" },
     { name: "RunAI", logo: "./images/partners/runai.png", logoWebp: "./images/partners/runai.webp", logoAvif: "./images/partners/runai.avif" },
-    { name: "Codum", logo: "./images/partners/codum.png", logoWebp: "./images/partners/codum.webp", logoAvif: "./images/partners/codum.avif" },
+    { name: "Codum", logo: "./images/partners/codum.png", logoWebp: "./images/partners/codum.webp" },
     { name: "DID", logo: "./images/partners/did.png", logoWebp: "./images/partners/did.webp", logoAvif: "./images/partners/did.avif" },
     { name: "Xupr", logo: "./images/partners/xupr thbyk.png", logoWebp: "./images/partners/xupr thbyk.webp", logoAvif: "./images/partners/xupr thbyk.avif" },
   ];

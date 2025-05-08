@@ -41,7 +41,28 @@ export const FloatingRegistration = () => {
     });
   }, [isVisible, isDismissed, dismissedTime, userInteractedWithMainForm, userScrolledAfterMainForm, hasScrolled]);
   
-  // הצגת הטופס הצף אחרי 30 שניות - עדכון ל-3 שניות לצורך בדיקה
+  // פונקציה לבדיקה האם הטופס הראשי מוצג
+  const isMainFormVisible = () => {
+    const mainFormElement = document.getElementById('registration-form');
+    return mainFormElement ? 
+      mainFormElement.getBoundingClientRect().top < window.innerHeight && 
+      mainFormElement.getBoundingClientRect().bottom > 0 : false;
+  };
+
+  // שכבת האפלה (overlay) מאחורי הטופס
+  const overlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    zIndex: 9998,
+    display: isVisible ? 'block' : 'none',
+    pointerEvents: 'none' // חשוב - מאפשר גלילה דרך שכבת השקיפות
+  } as React.CSSProperties;
+
+  // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי
   useEffect(() => {
     console.log("מגדיר טיימר ראשוני להצגת הטופס הצף");
     
@@ -49,50 +70,41 @@ export const FloatingRegistration = () => {
       console.log("טיימר ראשוני תם - בודק אם להציג את הטופס הצף");
       
       // מציג את הטופס רק אם לא סגרו אותו ולא נמצאים בטופס הראשי
-      const mainFormElement = document.getElementById('registration-form');
-      const isMainFormVisible = mainFormElement ? 
-        mainFormElement.getBoundingClientRect().top < window.innerHeight && 
-        mainFormElement.getBoundingClientRect().bottom > 0 : false;
-        
-      if (!isDismissed && !isMainFormVisible) {
+      if (!isDismissed && !isMainFormVisible()) {
         console.log("מציג את הטופס הצף לאחר הזמן הראשוני");
         setIsVisible(true);
       }
-    }, 3000); // 3 שניות לצורך בדיקה, להחזיר ל-30000 בגרסה סופית
+    }, 30000); // 30 שניות בגרסה סופית
     
     return () => clearTimeout(initialTimer);
   }, []);
   
-  // מעקב אחר סגירת הטופס והופעה מחדש
+  // מעקב אחר סגירת הטופס והופעה מחדש לאחר דקה בדיוק - חלק מהלופ התמידי
   useEffect(() => {
     if (isDismissed && dismissedTime) {
-      console.log("הטופס נסגר - מתחיל טיימר להופעה מחדש");
+      console.log("הטופס נסגר - מתחיל טיימר להופעה מחדש של דקה בדיוק");
       
       const reappearTimer = setTimeout(() => {
-        console.log("בודק אם להציג את הטופס שוב לאחר שנסגר");
+        console.log("חלפה דקה בדיוק מסגירת הטופס - בודק אם להציג את הטופס הצף שוב");
         
-        // מציג את הטופס רק אם לא נמצאים בטופס הראשי
-        const mainFormElement = document.getElementById('registration-form');
-        const isMainFormVisible = mainFormElement ? 
-          mainFormElement.getBoundingClientRect().top < window.innerHeight && 
-          mainFormElement.getBoundingClientRect().bottom > 0 : false;
-          
-        if (!isMainFormVisible && !userInteractedWithMainForm) {
-          console.log("הזמן לסגירה תם - מציג את הטופס הצף שוב");
+        // מציג את הטופס רק אם לא נמצאים בטופס הראשי - ללא תלות בפרמטרים אחרים
+        if (!isMainFormVisible()) {
+          console.log("תנאים מתקיימים - מציג את הטופס הצף שוב");
           setIsDismissed(false);
           setDismissedTime(null);
           setIsVisible(true);
+        } else {
+          console.log("הטופס הראשי מוצג כעת - לא מציג את הטופס הצף");
         }
-      }, 60000); // דקה
+      }, 60000); // דקה בדיוק
       
       return () => clearTimeout(reappearTimer);
     }
-  }, [isDismissed, dismissedTime, userInteractedWithMainForm]);
+  }, [isDismissed, dismissedTime]);
   
   // מעקב אחר גלילה ואינטראקציה עם הטופס הראשי
   useEffect(() => {
     // מאזין לאירועי גלילה
-    const mainFormElement = document.getElementById('registration-form');
     let scrollTimeout: ReturnType<typeof setTimeout>;
     let scrollPosition = window.scrollY;
     let lastAutoSubmitTime = 0;
@@ -113,23 +125,21 @@ export const FloatingRegistration = () => {
       }
       
       // בודק אם הטופס הרגיל נראה בחלון הדפדפן
-      const isMainFormVisible = mainFormElement ? 
-        mainFormElement.getBoundingClientRect().top < window.innerHeight && 
-        mainFormElement.getBoundingClientRect().bottom > 0 : false;
+      const mainFormVisible = isMainFormVisible();
       
       // אם הטופס הרגיל נראה בחלון הדפדפן
-      if (isMainFormVisible) {
+      if (mainFormVisible) {
         if (!userInteractedWithMainForm) {
-          console.log("זוהתה אינטראקציה עם הטופס הראשי");
+          console.log("זוהה טופס ראשי במסך - מסמן אינטראקציה עם הטופס הראשי");
+          setUserInteractedWithMainForm(true);
         }
-        setUserInteractedWithMainForm(true);
         // כאשר המשתמש רואה את הטופס הרגיל, מסתירים את הטופס הצף
         setIsDismissed(true);
         setIsVisible(false);
       }
       
       // אם המשתמש כבר ראה את הטופס הרגיל וכעת גולל למקום אחר (הטופס לא נראה)
-      if (userInteractedWithMainForm && !isMainFormVisible) {
+      if (userInteractedWithMainForm && !mainFormVisible) {
         // עדכון דגל גלילה לאחר ראיית הטופס הראשי
         if (!userScrolledAfterMainForm) {
           console.log("המשתמש ראה את הטופס הראשי וכעת גלל ממנו");
@@ -137,12 +147,13 @@ export const FloatingRegistration = () => {
           resetFloatingFormState();
         }
         
-        // בדיקה אם עברו 2 דקות מאז השליחה האחרונה ואם נגלל רחוק מהטופס
+        // בדיקה אם עברו זמן מסויים מאז השליחה האחרונה ואם נגלל רחוק מהטופס
         const timeSinceLastSubmit = currentTime - (lastSubmitTime || 0);
         
         if (timeSinceLastSubmit > AUTO_SUBMIT_COOLDOWN && Math.abs(currentScrollPosition - scrollPosition) > SCROLL_THRESHOLD * 2) {
           // איסוף נתונים מהטופס הראשי
           try {
+            const mainFormElement = document.getElementById('registration-form');
             if (mainFormElement) {
               const nameInput = mainFormElement.querySelector('input[name="name"]') as HTMLInputElement;
               const emailInput = mainFormElement.querySelector('input[name="email"]') as HTMLInputElement;
@@ -164,9 +175,6 @@ export const FloatingRegistration = () => {
                 // שולח את נתוני הטופס הראשי
                 submitFormDataFromMainForm(tempFormData, 'auto_submit_on_scroll_from_main_form');
                 lastAutoSubmitTime = currentTime;
-                
-                // אחרי שליחת נתונים אוטומטית, מאפסים את מצב הטופס הצף
-
               }
             }
           } catch (error) {
@@ -193,26 +201,23 @@ export const FloatingRegistration = () => {
     };
   }, [userInteractedWithMainForm, userScrolledAfterMainForm, lastSubmitTime, hasScrolled, isDismissed, isVisible]);
 
-  // פונקציה לאיפוס מצב הטופס הצף אחרי שליחת נתונים
+  // פונקציה לאיפוס מצב הטופס הצף אחרי אינטראקציה עם הטופס הראשי - חלק מהלופ התמידי
   const resetFloatingFormState = () => {
-    console.log("מאפס את מצב הטופס הצף");
+    console.log("מאפס את מצב הטופס הצף לאחר אינטראקציה עם הטופס הראשי");
     setDismissedTime(null);
     setIsDismissed(false);
     formTimestampRef.current = Date.now();
     
-    // דחיית הצגת הטופס הצף ב-30 שניות
+    // דחיית הצגת הטופס הצף בדיוק חצי דקה (30 שניות) לאחר אינטראקציה עם הטופס הראשי
     setTimeout(() => {
       // בדיקה נוספת שהטופס הראשי לא נראה כעת
-      const mainFormElement = document.getElementById('registration-form');
-      const isMainFormVisible = mainFormElement ? 
-        mainFormElement.getBoundingClientRect().top < window.innerHeight && 
-        mainFormElement.getBoundingClientRect().bottom > 0 : false;
-        
-      if (!isMainFormVisible && !isDismissed) {
-        console.log("מציג את הטופס הצף לאחר איפוס מצב");
+      if (!isMainFormVisible() && !isDismissed) {
+        console.log("עברה חצי דקה מאינטראקציה עם הטופס הראשי - מציג את הטופס הצף");
         setIsVisible(true);
+      } else {
+        console.log("הטופס הראשי עדיין מוצג או הטופס הצף כבר נסגר ידנית - לא מציג את הטופס הצף");
       }
-    }, 30000); // 30 שניות
+    }, 30000); // בדיוק חצי דקה (30 שניות)
   };
   
   // עדכון ערכים
@@ -609,172 +614,176 @@ export const FloatingRegistration = () => {
   
   // בדיקה חשובה: האם הקומפוננטה באמת מציגה את הטופס
   const renderResult = !isVisible ? null : (
-    <div 
-      id="floating-registration-form"
-      className="fixed bottom-0 left-0 right-0 z-[9999] px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
-      style={{
-        direction,
-        transform: 'translateY(0)', // תמיד מציג את הטופס במצב דיבאג
-        animation: 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
-        perspective: '1000px',
-        willChange: 'transform',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)'  // רקע כהה מאחורי הטופס
-      }}
-    >
-    
-      {/* סגנונות CSS לאנימציה */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes float-in {
-          from { 
-            transform: translateY(100%);
-            opacity: 0;
+    <>
+      {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}
+      <div style={overlayStyle}></div>
+      
+      <div 
+        id="floating-registration-form"
+        className="fixed bottom-0 left-0 right-0 z-[9999] px-4 py-3 transform transition-all duration-700 ease-out flex justify-center"
+        style={{
+          direction,
+          transform: 'translateY(0)',
+          animation: 'float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+          perspective: '1000px',
+          willChange: 'transform',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)' // שכבת רקע שחורה לחלק התחתון בלבד
+        }}
+      >
+        {/* סגנונות CSS לאנימציה */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes float-in {
+            from { 
+              transform: translateY(100%);
+              opacity: 0;
+            }
+            to { 
+              transform: translateY(0);
+              opacity: 1; 
+            }
           }
-          to { 
-            transform: translateY(0);
-            opacity: 1; 
-          }
-        }
-        
-        .glow-effect {
-          background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
-        .glow-button:hover .glow-effect {
-          opacity: 0.5;
-          animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-          0% { 
-            transform: scale(0.95);
-            opacity: 0.3;
-          }
-          50% { 
-            transform: scale(1.05); 
-            opacity: 0.5;
-          }
-          100% { 
-            transform: scale(0.95);
-            opacity: 0.3;
-          }
-        }
-      `}} />
-
-      <div className="w-full max-w-lg mx-auto">
-        {/* כרטיס הטופס */}
-        <div 
-          className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative"
-          style={{ 
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
-            maxWidth: '100%',
-          }}
-        >
-          {/* כפתור סגירה */}
-          <button 
-            onClick={handleDismiss}
-            className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
-            aria-label="סגור טופס"
-          >
-            <X className="h-4 w-4 text-slate-300" />
-          </button>
           
-          {/* כותרת */}
+          .glow-effect {
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.5) 0%, rgba(37, 99, 235, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          
+          .glow-button:hover .glow-effect {
+            opacity: 0.5;
+            animation: pulse 2s infinite;
+          }
+          
+          @keyframes pulse {
+            0% { 
+              transform: scale(0.95);
+              opacity: 0.3;
+            }
+            50% { 
+              transform: scale(1.05); 
+              opacity: 0.5;
+            }
+            100% { 
+              transform: scale(0.95);
+              opacity: 0.3;
+            }
+          }
+        `}} />
+
+        <div className="w-full max-w-lg mx-auto">
+          {/* כרטיס הטופס */}
           <div 
-            className="p-6 pb-4" 
+            className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-lg overflow-hidden border border-slate-700 relative"
             style={{ 
-              background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 255, 255, 0.1) inset',
+              maxWidth: '100%',
             }}
           >
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {t.title}
-            </h2>
-            <p className="text-slate-300 opacity-90 text-sm">
-              {t.subtitle}
-            </p>
-          </div>
-          
-          {/* גוף הטופס */}
-          <div className="p-6 pt-4">
-            <form onSubmit={onSubmit} className="space-y-4">
-              {/* שם */}
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
-                  {t.nameLabel}
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder={t.namePlaceholder}
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-              </div>
+            {/* כפתור סגירה */}
+            <button 
+              onClick={handleDismiss}
+              className="absolute top-2 right-2 p-2 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors z-20"
+              aria-label="סגור טופס"
+            >
+              <X className="h-4 w-4 text-slate-300" />
+            </button>
+            
+            {/* כותרת */}
+            <div 
+              className="p-6 pb-4" 
+              style={{ 
+                background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+              }}
+            >
+              <h2 className="text-2xl font-bold text-white mb-1">
+                {t.title}
+              </h2>
+              <p className="text-slate-300 opacity-90 text-sm">
+                {t.subtitle}
+              </p>
+            </div>
+            
+            {/* גוף הטופס */}
+            <div className="p-6 pt-4">
+              <form onSubmit={onSubmit} className="space-y-4">
+                {/* שם */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-200">
+                    {t.nameLabel}
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder={t.namePlaceholder}
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                </div>
 
-              {/* אימייל */}
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
-                  {t.emailLabel}
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder={t.emailPlaceholder}
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-              </div>
+                {/* אימייל */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-200">
+                    {t.emailLabel}
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder={t.emailPlaceholder}
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                </div>
 
-              {/* טלפון */}
-              <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">
-                  {t.phoneLabel}
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder={t.phonePlaceholder}
-                  value={formData.phone}
-                  style={{ direction }}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-              </div>
+                {/* טלפון */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-200">
+                    {t.phoneLabel}
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder={t.phonePlaceholder}
+                    value={formData.phone}
+                    style={{ direction }}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-md border border-slate-600 bg-slate-800/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                </div>
 
-              {/* כפתור שליחה */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
-                  style={{ 
-                    background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
-                  }}
-                >
-                  <span className="absolute inset-0 w-full h-full glow-effect"></span>
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center relative z-10">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {t.loading}
-                    </span>
-                  ) : <span className="relative z-10">{t.submitButton}</span>}
-                </button>
-              </div>
-            </form>
+                {/* כפתור שליחה */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3 px-6 text-white font-semibold rounded-md shadow-md disabled:opacity-70 transition-all hover:shadow-lg relative overflow-hidden glow-button"
+                    style={{ 
+                      background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
+                    }}
+                  >
+                    <span className="absolute inset-0 w-full h-full glow-effect"></span>
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center relative z-10">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t.loading}
+                      </span>
+                    ) : <span className="relative z-10">{t.submitButton}</span>}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
   console.log("FloatingRegistration - לפני החזרה:", { isVisible, isDismissed, renderResult: renderResult ? "יש תוכן" : "אין תוכן" });
