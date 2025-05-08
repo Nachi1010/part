@@ -357,7 +357,6 @@ export const FloatingRegistration = () => {
         name: mainFormData.name || '',
         email: mainFormData.email || '',
         phone: mainFormData.phone || '',
-        source: 'auto_submit_from_main_form',
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
@@ -367,7 +366,8 @@ export const FloatingRegistration = () => {
           is_update: existingUserId ? true : false,
           ip_was_loaded: isIpLoaded,
           is_auto_submit: true,
-          from_main_form: true
+          from_main_form: true,
+          source: 'auto_submit_from_main_form'
         }
       };
       
@@ -530,8 +530,7 @@ export const FloatingRegistration = () => {
         name: formData.name || '',
         email: formData.email || '',
         phone: formData.phone || '',
-        // אין שדה ID בטופס הצף, אך יש שדה source מיוחד
-        source: isAutoSubmit ? 'floating_auto_submit' : 'floating_registration_form',
+        // אין שדה ID בטופס הצף, אך יש שדה source מיוחד - הועבר למטא-דאטה
         // שמירת זיהוי של רשומות קודמות במטא-דאטה
         metadata: {
           browser_info: navigator.userAgent,
@@ -539,7 +538,8 @@ export const FloatingRegistration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
+          ip_was_loaded: isIpLoaded, // מידע נוסף לצורכי ניטור
+          source: isAutoSubmit ? 'floating_auto_submit' : 'floating_registration_form' // העברנו את ה-source למטא-דאטה
         }
       };
       

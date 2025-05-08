@@ -159,7 +159,8 @@ export const Registration = () => {
           form_timestamp: new Date().toISOString(),
           previous_registration_id: existingUserId || null,
           is_update: existingUserId ? true : false,
-          ip_was_loaded: isIpLoaded // מידע נוסף לצורכי ניטור
+          ip_was_loaded: isIpLoaded, // מידע נוסף לצורכי ניטור
+          source: 'main_registration_form' // הוספנו את ה-source למטא-דאטה
         }
       };
       
