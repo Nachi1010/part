@@ -80,14 +80,14 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
               />
             </picture>
           </Link>
-        </div>
+        </div>        
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="hover:bg-dark-light/20 transition-colors font-bold text-slate-900 dark:text-white"
+          className="hover:bg-dark-light/20 transition-colors font-bold text-slate-900"
           aria-label={t.languageLabel}
-          style={{ color: '#0f172a' }}
+          style={{ color: '#0f172a !important' }}
         >
           <Globe className="h-5 w-5 mr-2 text-slate-900 dark:text-white" style={{ color: '#0f172a' }} aria-hidden="true" />
           {t.toggleLanguage}
