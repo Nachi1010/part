@@ -1,0 +1,99 @@
+[33mcommit 73c30299b92ea53287a60f62d8b85cf9a00cf40f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Your Name <user@example.com>
+Date:   Thu May 8 12:21:30 2025 +0300
+
+    Simplified FloatingRegistration UI
+
+[1mdiff --git a/src/components/sections/FloatingRegistration.tsx b/src/components/sections/FloatingRegistration.tsx[m
+[1mindex 470308b..2294ccd 100644[m
+[1m--- a/src/components/sections/FloatingRegistration.tsx[m
+[1m+++ b/src/components/sections/FloatingRegistration.tsx[m
+[36m@@ -61,7 +61,7 @@[m [mexport const FloatingRegistration = () => {[m
+     display: isVisible ? 'block' : 'none',[m
+     height: '100vh', // מבטיח שהשכבה תכסה את כל גובה המסך[m
+     width: '100vw', // מבטיח שהשכבה תכסה את כל רוחב המסך[m
+[31m-    pointerEvents: 'none' // שינוי ל-all כדי שהקליק על הרקע יתפס[m
+[32m+[m[32m    pointerEvents: 'none' // חוסם אינטראקציה עם הרקע - לא ניתן לסגור בלחיצה על הרקע[m
+   } as React.CSSProperties;[m
+ [m
+   // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי[m
+[36m@@ -617,8 +617,10 @@[m [mexport const FloatingRegistration = () => {[m
+   // בדיקה חשובה: האם הקומפוננטה באמת מציגה את הטופס[m
+   const renderResult = !isVisible ? null : ([m
+     <>[m
+[31m-      {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}[m
+[31m-      <div style={overlayStyle}></div>[m
+[32m+[m[32m      {/* שכבת האפלה למסך מלא - ללא אפשרות גלילה דרכה */}[m
+[32m+[m[32m      <div[m[41m [m
+[32m+[m[32m        style={overlayStyle}[m
+[32m+[m[32m      ></div>[m
+       [m
+       <div [m
+         id="floating-registration-form"[m
+[36m@@ -734,11 +736,10 @@[m [mexport const FloatingRegistration = () => {[m
+                 borderBottom: '1px solid rgba(59, 130, 246, 0.2)'[m
+               }}[m
+             >[m
+[31m-              <h2 className="text-2xl font-bold text-white mb-1 flex items-center">[m
+[31m-                <span className="mr-2 animate-pulse-subtle opacity-90">✨</span>[m
+[32m+[m[32m              <h2 className="text-2xl font-bold text-white mb-1 text-center">[m
+                 {t.title}[m
+               </h2>[m
+[31m-              <p className="text-slate-300 opacity-90 text-sm">[m
+[32m+[m[32m              <p className="text-slate-300 opacity-90 text-sm text-center">[m
+                 {t.subtitle}[m
+               </p>[m
+             </div>[m
+[36m@@ -861,20 +862,6 @@[m [mexport const FloatingRegistration = () => {[m
+                     ) : ([m
+                       <span className="relative z-10 flex items-center justify-center">[m
+                         {t.submitButton}[m
+[31m-                        <svg [m
+[31m-                          className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" [m
+[31m-                          fill="none" [m
+[31m-                          stroke="currentColor" [m
+[31m-                          viewBox="0 0 24 24" [m
+[31m-                          xmlns="http://www.w3.org/2000/svg"[m
+[31m-                        >[m
+[31m-                          <path [m
+[31m-                            strokeLinecap="round" [m
+[31m-                            strokeLinejoin="round" [m
+[31m-                            strokeWidth={2} [m
+[31m-                            d="M14 5l7 7m0 0l-7 7m7-7H3" [m
+[31m-                          />[m
+[31m-                        </svg>[m
+                       </span>[m
+                     )}[m
+                   </button>[m
+
+[33mcommit 9f077dd61f5c2d5d9dd26de03457dacafca700ba[m
+Author: Your Name <user@example.com>
+Date:   Thu May 8 12:11:48 2025 +0300
+
+    UI improvements: Enhanced FloatingRegistration animation and interaction
+
+[1mdiff --git a/src/components/sections/FloatingRegistration.tsx b/src/components/sections/FloatingRegistration.tsx[m
+[1mindex b90d90d..470308b 100644[m
+[1m--- a/src/components/sections/FloatingRegistration.tsx[m
+[1m+++ b/src/components/sections/FloatingRegistration.tsx[m
+[36m@@ -61,7 +61,7 @@[m [mexport const FloatingRegistration = () => {[m
+     display: isVisible ? 'block' : 'none',[m
+     height: '100vh', // מבטיח שהשכבה תכסה את כל גובה המסך[m
+     width: '100vw', // מבטיח שהשכבה תכסה את כל רוחב המסך[m
+[31m-    pointerEvents: 'all' // מאפשר אינטראקציה עם הרקע[m
+[32m+[m[32m    pointerEvents: 'none' // שינוי ל-all כדי שהקליק על הרקע יתפס[m
+   } as React.CSSProperties;[m
+ [m
+   // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי[m
+[36m@@ -618,10 +618,7 @@[m [mexport const FloatingRegistration = () => {[m
+   const renderResult = !isVisible ? null : ([m
+     <>[m
+       {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}[m
+[31m-      <div [m
+[31m-        style={overlayStyle} [m
+[31m-        onClick={handleDismiss} // מאפשר סגירה בלחיצה על הרקע[m
+[31m-      ></div>[m
+[32m+[m[32m      <div style={overlayStyle}></div>[m
+       [m
+       <div [m
+         id="floating-registration-form"[m

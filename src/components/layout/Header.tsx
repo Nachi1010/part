@@ -25,10 +25,19 @@ const translations = {
 export const Header = ({ onMenuToggle }: HeaderProps) => {
   const [scrolled, setScrolled] = useState(false);
   const { currentLang, setCurrentLang } = useLanguage();
+  const [prevScrollY, setPrevScrollY] = useState(0);
 
   const handleScroll = useCallback(() => {
-    setScrolled(window.scrollY > 50);
-  }, []);
+    const currentScrollY = window.scrollY;
+    if (currentScrollY === 0) {
+        setScrolled(false);
+    } else if (currentScrollY > prevScrollY) {
+        setScrolled(true);
+    } else if (currentScrollY < prevScrollY) {
+        setScrolled(false);
+    }
+    setPrevScrollY(currentScrollY);
+  }, [prevScrollY]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -46,8 +55,8 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
         transform: 'translateY(0)' 
       }}
     >
-      <div className="container mx-auto flex items-center justify-between h-full">
-        <div className="flex items-center gap-4">
+      <div className="container mx-auto flex items-center justify-between h-full px-2 sm:px-4 lg:px-8">
+        <div className="flex items-center gap-2 md:gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -60,14 +69,14 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           </Button>
           <Link 
             to="/" 
-            className="flex items-center hover:opacity-90 transition-opacity"
+            className="flex items-center hover:opacity-90 transition-opacity md:ml-4 lg:ml-8"
             aria-label="Home"
           >
             <picture>
               <img 
                 src={getImagePath("/images/2.png")}
                 alt="CloserAI"
-                className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
+                className={`w-auto transition-all duration-700 ${scrolled ? 'h-8 md:h-10' : 'h-12 md:h-14'}`}
               />
             </picture>
           </Link>
@@ -76,7 +85,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="text-high-contrast hover:bg-dark-light/20 transition-colors"
+          className="text-blue-900 hover:bg-dark-light/20 transition-colors"
           aria-label={t.languageLabel}
         >
           <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
