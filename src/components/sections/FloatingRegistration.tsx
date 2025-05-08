@@ -61,7 +61,7 @@ export const FloatingRegistration = () => {
     display: isVisible ? 'block' : 'none',
     height: '100vh', // מבטיח שהשכבה תכסה את כל גובה המסך
     width: '100vw', // מבטיח שהשכבה תכסה את כל רוחב המסך
-    pointerEvents: 'all' // מאפשר אינטראקציה עם הרקע
+    pointerEvents: 'none' // שינוי ל-all כדי שהקליק על הרקע יתפס
   } as React.CSSProperties;
 
   // הצגת הטופס הצף אחרי 30 שניות מהכניסה לדף - מתחיל את הלופ התמידי
@@ -618,10 +618,7 @@ export const FloatingRegistration = () => {
   const renderResult = !isVisible ? null : (
     <>
       {/* שכבת האפלה למסך מלא - עם אפשרות גלילה דרכה */}
-      <div 
-        style={overlayStyle} 
-        onClick={handleDismiss} // מאפשר סגירה בלחיצה על הרקע
-      ></div>
+      <div style={overlayStyle}></div>
       
       <div 
         id="floating-registration-form"
