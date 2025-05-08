@@ -85,7 +85,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           variant="ghost" 
           size="sm" 
           onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="transition-colors font-bold"
+          className="hover:bg-dark-light/20 transition-colors font-bold"
           aria-label={t.languageLabel}
           style={{
             color: '#0f172a', 
@@ -94,8 +94,14 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           } as React.CSSProperties}
         >
           <Globe className="h-5 w-5 mr-2" style={{color: '#0f172a'}} aria-hidden="true" />
-          <div style={{color: '#0f172a', fontWeight: 'bold', display: 'inline'}}>{t.toggleLanguage}</div>
-        </Button>
+          <div style={{
+            color: '#0f172a', 
+            fontWeight: 'bold', 
+            display: 'inline',
+            textShadow: 'none',
+            filter: 'none',
+            boxShadow: 'none'
+          }}>{t.toggleLanguage}</div>        </Button>
         </div>
     </header>
   );
