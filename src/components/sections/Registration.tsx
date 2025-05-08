@@ -233,9 +233,54 @@ export const Registration = () => {
       let errorMsg = t.errorMessage;
       
       if (isMobile) {
+        // ניסיון לבנות הודעת שגיאה מפורטת יותר במובייל
+        let errorDetails = '';
+        
+        try {
+          // בדיקת האם השגיאה היא אובייקט של שגיאת סופאבייס
+          if (error && typeof error === 'object' && 'message' in error) {
+            errorDetails = error.message;
+          } 
+          // בדיקה האם יש שדה code
+          else if (error && typeof error === 'object' && 'code' in error) {
+            errorDetails = `קוד שגיאה: ${error.code}`;
+            // בדיקה האם יש גם שדה details
+            if ('details' in error) {
+              errorDetails += `, פרטים: ${typeof error.details === 'object' 
+                ? JSON.stringify(error.details, null, 2) 
+                : String(error.details)}`;
+            }
+          } 
+          // ניסיון המרה כללי לטקסט
+          else {
+            errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            // אם קיבלנו "[object Object]" ננסה המרה אחרת
+            if (errorDetails === '{}' || errorDetails.includes('[object Object]')) {
+              errorDetails = Object.prototype.toString.call(error);
+              
+              // ניסיון לגשת לשדות עיקריים באם האובייקט מכיל אותם
+              if (error && typeof error === 'object') {
+                const keys = Object.keys(error);
+                if (keys.length > 0) {
+                  errorDetails += ' - שדות: ' + keys.join(', ');
+                  // לוקח עד 3 שדות ראשונים כדוגמה
+                  for (let i = 0; i < Math.min(3, keys.length); i++) {
+                    const key = keys[i];
+                    errorDetails += `\n${key}: ${String(error[key])}`;
+                  }
+                }
+              }
+            }
+          }
+        } catch (jsonError) {
+          // אם יש בעיה בהמרה, נשתמש בהמרה פשוטה
+          errorDetails = String(error);
+        }
+        
         console.error('שגיאת מובייל מזוהה בטופס ראשי:', {
           userAgent: navigator.userAgent,
-          errorDetails: error instanceof Error ? error.message : String(error),
+          errorObject: error,
+          errorAsString: errorDetails,
           formData: {
             nameProvided: !!formData.name,
             emailProvided: !!formData.email,
@@ -245,8 +290,8 @@ export const Registration = () => {
           }
         });
         
-        errorMsg += "\n\nפרטי שגיאה למובייל: " + 
-          (error instanceof Error ? error.message : String(error));
+        // מוסיף את פרטי השגיאה המפורטים להודעה
+        errorMsg += "\n\nפרטי שגיאה במובייל: " + errorDetails;
       }
       
       toast({
