@@ -49,8 +49,8 @@ export const TechnicalDetails = () => {
         },
         {
           icon: <Clock className="w-4 h-4" />,
-          title: "Course Duration:",
-          description: "One intensive year, 5 days a week, approximately 40 hours weekly"
+          title: "Courses:",
+          description: "machin learning, newral networks, mcp, transformers, big data, python, sql, spesific architecturs, end-to-end projects"
         },
         {
           icon: <Award className="w-4 h-4" />,
@@ -104,8 +104,8 @@ export const TechnicalDetails = () => {
         },
         {
           icon: <Clock className="w-4 h-4" />,
-          title: "משך הקורס:",
-          description: "שנה אחת אינטנסיבית, 5 ימים בשבוע, כ-40 שעות שבועיות"
+          title: "קורסים:",
+          description: "machin learning, newral networks, mcp, transformers, big data, python, sql, spesific architecturs, end-to-end projects"
         },
         {
           icon: <Award className="w-4 h-4" />,
