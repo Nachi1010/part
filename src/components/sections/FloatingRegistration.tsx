@@ -660,7 +660,7 @@ export const FloatingRegistration = () => {
       loading: "Processing..."
     },
     he: {
-      title: "אל תפספסו!",
+      title: "לסילבוס המלא",
       subtitle: "הירשמו עכשיו לגישה מוקדמת",
       namePlaceholder: "ישראל ישראלי",
       emailPlaceholder: "your@email.com",
