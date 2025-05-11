@@ -27,7 +27,6 @@ const Index = () => {
       <main className="pt-16">
         <Hero />
         <Features />
-        <Testimonials />
         <Article />
         <KeyAdvantages />
         <Statistics />
@@ -37,7 +36,6 @@ const Index = () => {
         <FAQ />
         <TechnicalDetails />
         <AboutUs />
-        <QuestionsAndCTA />
         <FloatingRegistration />
       </main>
       <CTA />
